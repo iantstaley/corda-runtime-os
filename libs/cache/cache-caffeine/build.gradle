@@ -1,0 +1,22 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+description 'Caffeine cache utilities'
+
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(":libs:metrics")
+    implementation project(":libs:utilities")
+    implementation 'net.corda:corda-base'
+    api "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'org.slf4j:slf4j-api'
+
+    testImplementation "com.google.jimfs:jimfs:$jimfsVersion"
+}

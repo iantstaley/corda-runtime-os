@@ -1,0 +1,29 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Permission Validation Implementation'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-base"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:permissions:permission-validation")
+    implementation project(":libs:permissions:permission-validation-cache")
+    implementation project(":libs:permissions:permission-password")
+    implementation project(':libs:utilities')
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-topic-schema"
+
+}

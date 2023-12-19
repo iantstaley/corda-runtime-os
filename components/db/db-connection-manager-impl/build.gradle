@@ -1,0 +1,40 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "DB Connection Manager Implemenation"
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation project(":components:db:db-connection-manager")
+    implementation project(':libs:db:db-core')
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:configuration:configuration-validation')
+    implementation project(':libs:configuration:configuration-datamodel')
+    implementation project(':libs:virtual-node:virtual-node-datamodel')
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(':libs:utilities')
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-base'
+    implementation 'net.corda:corda-config-schema'
+    implementation 'net.corda:corda-db-schema'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    testRuntimeOnly "org.osgi:osgi.core"
+
+    integrationTestImplementation project(':libs:db:db-admin')
+    integrationTestImplementation project(':libs:db:db-admin-impl')
+    integrationTestImplementation project(':libs:db:db-orm')
+    integrationTestImplementation project(':libs:db:db-orm-impl')
+    integrationTestImplementation project(":testing:bundles:testing-cats")
+    integrationTestImplementation project(':testing:db-testkit')
+
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    integrationTestRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+}

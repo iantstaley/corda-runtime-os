@@ -1,0 +1,51 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+    id 'corda.osgi-test-conventions'
+}
+
+description "Configuration read service implementation"
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation project(":components:configuration:configuration-read-service")
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:configuration:configuration-merger')
+    implementation project(':libs:messaging:messaging')
+    implementation project(':libs:utilities')
+    implementation project(':libs:schema-registry:schema-registry')
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-base"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-avro-schema'
+    implementation 'net.corda:corda-config-schema'
+    implementation 'net.corda:corda-topic-schema'
+
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    runtimeOnly project(":libs:web:web-impl")
+
+    testImplementation project(":libs:lifecycle:lifecycle-impl")
+    testImplementation project(":libs:lifecycle:lifecycle-test-impl")
+    integrationTestImplementation project(":testing:db-message-bus-testkit")
+    integrationTestImplementation project(":testing:test-utilities")
+    integrationTestImplementation project(":libs:lifecycle:registry")
+
+    integrationTestRuntimeOnly project(":libs:crypto:cipher-suite-impl")
+    integrationTestRuntimeOnly project(":libs:db:db-orm-impl")
+    integrationTestRuntimeOnly project(":libs:lifecycle:lifecycle-impl")
+    integrationTestRuntimeOnly project(':libs:messaging:messaging-impl')
+    integrationTestRuntimeOnly project(':libs:messaging:db-message-bus-impl')
+    integrationTestRuntimeOnly project(":libs:messaging:db-topic-admin-impl")
+    integrationTestRuntimeOnly project(":libs:schema-registry:schema-registry-impl")
+    integrationTestRuntimeOnly "org.apache.aries.spifly:org.apache.aries.spifly.dynamic.framework.extension:$ariesDynamicFrameworkExtensionVersion"
+    integrationTestRuntimeOnly "org.slf4j:slf4j-simple:$slf4jVersion"
+
+    integrationTestRuntimeOnly "org.ops4j.pax.jdbc:pax-jdbc-hsqldb:$paxJdbcVersion"
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    integrationTestRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+}

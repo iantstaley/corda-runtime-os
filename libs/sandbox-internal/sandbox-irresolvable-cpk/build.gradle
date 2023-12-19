@@ -1,0 +1,24 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+}
+
+description 'Corda Sandbox Irresolvable CPK'
+
+group 'com.example.sandbox'
+
+cordapp {
+    targetPlatformVersion platformVersion.toInteger()
+    workflow {
+        name 'Sandbox Irresolvable-CPK'
+        versionId 1
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'net.corda:corda-application'
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    // Corda does not actually provide this dependency, so an error will be thrown at sandbox creation time.
+    cordaProvided "org.osgi:org.osgi.service.cm:$osgiCmVersion"
+}

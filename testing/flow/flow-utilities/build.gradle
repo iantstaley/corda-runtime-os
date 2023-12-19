@@ -1,0 +1,13 @@
+plugins {
+    id 'corda.common-library'
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema:$cordaApiVersion"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+}
+
+description 'Flow Test Utilities'

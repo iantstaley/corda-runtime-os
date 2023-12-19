@@ -1,0 +1,18 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Membership data read service'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    api platform("net.corda:corda-api:$cordaApiVersion")
+    api 'net.corda:corda-membership'
+    api 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api project(":libs:membership:membership-common")
+    api project(':components:reconciliation:reconciliation')
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:virtual-node:virtual-node-info")
+}

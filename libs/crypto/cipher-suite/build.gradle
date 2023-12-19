@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Corda Cipher Suite'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'org.slf4j:slf4j-api'
+    implementation project(":libs:crypto:crypto-utils")
+
+    api platform("net.corda:corda-api:$cordaApiVersion")
+    api 'net.corda:corda-crypto'
+    api 'net.corda:corda-crypto-extensions'
+
+    api libs.bundles.bouncycastle
+
+}
+

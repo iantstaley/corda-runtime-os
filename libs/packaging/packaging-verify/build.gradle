@@ -1,0 +1,30 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Corda Packaging Verify'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api platform("net.corda:corda-api:$cordaApiVersion")
+
+    api 'net.corda:corda-base'
+    api 'net.corda:corda-crypto'
+    api project(':libs:crypto:cipher-suite')
+
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:packaging:packaging')
+    implementation project(':libs:packaging:packaging-core')
+    implementation "com.networknt:json-schema-validator:$networkntJsonSchemaVersion"
+    constraints {
+        implementation("com.ethlo.time:itu:$comEthloTimeItuVersion") {
+            because "Version bundled with current version of 'com.networknt:json-schema-validator' does not have OSGi manifest."
+        }
+    }
+
+    testImplementation project(':testing:test-utilities')
+    testImplementation project(':testing:packaging-test-utilities')
+}

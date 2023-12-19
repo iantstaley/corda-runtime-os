@@ -1,0 +1,19 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Corda Packaging Test - Build in memory CPI, CPB, and CPK for testing'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api platform("net.corda:corda-api:$cordaApiVersion")
+    api 'net.corda:corda-crypto'
+    api project(':libs:packaging:packaging-core')
+
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(":libs:packaging:packaging")
+    implementation project(":testing:test-utilities")
+}

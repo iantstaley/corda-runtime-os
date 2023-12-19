@@ -1,0 +1,17 @@
+@Library('corda-shared-build-pipeline-steps@5.2') _
+
+cordaPipelineKubernetesAgent(
+    dailyBuildCron: 'H 03 * * *',
+    runIntegrationTests: true,
+    publishRepoPrefix: 'corda-ent-maven',
+    createPostgresDb: true,
+    publishOSGiImage: true,
+    publishPreTestImage: true,
+    publishHelmChart: true,
+    e2eTestName: 'corda-runtime-os-e2e-tests',
+    runE2eTests: true,
+    runResiliencyTests: true,
+    gradleAdditionalArgs: '-Dscan.tag.Nightly-Build',
+    generateSbom: true,
+    javaVersion: '17'
+)

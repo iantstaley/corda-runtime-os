@@ -1,0 +1,21 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Membership persistence client'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    api 'net.corda:corda-membership'
+
+    api project(':libs:virtual-node:virtual-node-info')
+    api project(':libs:membership:network-info')
+
+    implementation project(':libs:lifecycle:lifecycle')
+    implementation project(':libs:membership:membership-common')
+    implementation project(':libs:messaging:messaging')
+}

@@ -1,0 +1,20 @@
+plugins {
+    id 'corda.osgi-test-conventions'
+}
+
+description 'Configuration OSGi tests'
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    compileOnly "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:osgi.core'
+
+    implementation project(':libs:configuration:configuration-core')
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    testRuntimeOnly 'org.osgi:osgi.core'
+}

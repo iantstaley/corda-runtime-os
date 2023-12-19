@@ -1,0 +1,25 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+description 'Application Impl'
+
+
+dependencies {
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-base'
+    implementation "net.corda:corda-application"
+
+    implementation project(":libs:virtual-node:sandbox-group-context")
+    api project(":libs:serialization:json-serializers")
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    implementation 'org.slf4j:slf4j-api'
+
+    testImplementation "com.google.jimfs:jimfs:$jimfsVersion"
+}

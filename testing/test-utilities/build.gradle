@@ -1,0 +1,34 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Test Utilities'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    api project(':libs:metrics')
+    api project(':libs:utilities')
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation libs.junit.api
+    implementation libs.mockito.core
+    implementation project(":components:virtual-node:cpi-info-read-service")
+    implementation project(":libs:virtual-node:virtual-node-info")
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:virtual-node:cpi-datamodel")
+}
+
+tasks.named('jar', Jar) {
+    bundle {
+        bnd '''\
+Import-Package: \
+    io.micrometer.*;resolution:=optional,\
+    net.corda.*;resolution:=optional,\
+    org.junit.jupiter.*;resolution:=optional,\
+    org.mockito.*;resolution:=optional,\
+    *
+'''
+    }
+}

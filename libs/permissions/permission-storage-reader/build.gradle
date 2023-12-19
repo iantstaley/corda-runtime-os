@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Permission storage reader library'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    api "net.corda:corda-avro-schema"
+    api project(":libs:messaging:messaging")
+    api project(":libs:permissions:permission-management-cache")
+    api project(":libs:permissions:permission-validation-cache")
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    api "javax.persistence:javax.persistence-api"
+
+    implementation project(":libs:lifecycle:lifecycle")
+}

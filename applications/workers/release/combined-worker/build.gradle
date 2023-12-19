@@ -1,0 +1,176 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.quasar-app'
+    id 'corda.docker-app'
+}
+
+ext {
+    // Use db message bus emulation by default, but allow switching to kafka without manually updating the build file
+    if (!project.hasProperty('busImpl')) {
+        busImplementation = 'db-message-bus-impl'
+    } else {
+        busImplementation = "${busImpl}-message-bus-impl"
+    }
+}
+
+description 'Combined Worker'
+
+osgiRun {
+    frameworkProperties.putAll(
+            'org.osgi.framework.security': 'osgi'
+    )
+}
+
+quasar {
+    excludeLocations = [ 'PERSISTENCE/*', 'VERIFICATION/*' ]
+    excludePackages.addAll([
+            'com.zaxxer.hikari**',
+            'liquibase**',
+            'net.bytebuddy**',
+            'net.corda.membership**',
+            'net.corda.p2p**',
+            'org.eclipse.jetty**',
+            'org.hibernate**',
+            'org.jboss.logging',
+            'org.postgresql**',
+            'org.yaml.snakeyaml**'
+    ])
+}
+
+configurations {
+    drivers {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+dependencies {
+    // for BundleManager
+    compileOnly "org.osgi:osgi.core"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    drivers "org.postgresql:postgresql:$postgresDriverVersion"
+
+    // Oracle isn't OSGi wrapped, but if it were, it is sufficient to just do this:
+    // OSGi bundle that registers a `DataSourceFactory` on behalf of Oracle,
+    // and add the OSGi wrapped version, i.e.
+    //
+    // drivers "org.ops4j.pax.jdbc:pax-jdbc-oracle:1.5.3"
+    // drivers "com.oracle.database.jdbc:ojdbc10WRAPPED-AS-A-BUNDLE:19.15.0.0"
+
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(':applications:workers:worker-common')
+    implementation project(":components:security-manager")
+    implementation project(':libs:application:application-db-setup')
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:configuration:configuration-validation')
+    implementation project(':libs:crypto:crypto-config-impl')
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:crypto:crypto-impl')
+    implementation project(":libs:lifecycle:registry")
+    implementation project(':libs:platform-info')
+    implementation project(':libs:tracing')
+    implementation project(':libs:web:web')
+    // Processor list must be kept in sync with workersForProcessor in net.corda.cli.plugins.topicconfig.Create
+    implementation project(':processors:crypto-processor')
+    implementation project(':processors:db-processor')
+    implementation project(':processors:flow-processor')
+    implementation project(':processors:flow-mapper-processor')
+    implementation project(':processors:member-processor')
+    implementation project(':processors:persistence-processor')
+    implementation project(':processors:rest-processor')
+    implementation project(':processors:uniqueness-processor')
+    implementation project(':processors:scheduler-processor')
+    implementation project(':processors:token-cache-processor')
+    implementation project(':processors:verification-processor')
+    implementation project(':processors:link-manager-processor')
+    implementation project(':processors:gateway-processor')
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "info.picocli:picocli:$picocliVersion"
+    implementation 'net.corda:corda-base'
+
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    implementation 'net.corda:corda-config-schema'
+
+    runtimeOnly project(':libs:tracing-impl')
+    runtimeOnly "org.apache.aries.spifly:org.apache.aries.spifly.dynamic.framework.extension:$ariesDynamicFrameworkExtensionVersion"
+    runtimeOnly "net.corda:corda-application"
+    runtimeOnly "com.typesafe:config:$typeSafeConfigVersion"
+    runtimeOnly "org.apache.felix:org.apache.felix.scr:$felixScrVersion"
+    runtimeOnly "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    runtimeOnly "org.osgi:org.osgi.util.function:$osgiUtilFunctionVersion"
+    runtimeOnly "org.osgi:org.osgi.util.promise:$osgiUtilPromiseVersion"
+    runtimeOnly "org.apache.felix:org.apache.felix.configadmin:$felixConfigAdminVersion"
+
+    runtimeOnly project(":libs:messaging:${busImplementation}")
+
+    runtimeOnly("org.apache.felix:org.apache.felix.framework.security:$felixSecurityVersion") {
+        exclude group: 'org.apache.felix'
+        exclude group: 'org.osgi'
+    }
+}
+
+// Download drivers into this folder - if you change this folder
+// or this location, you'll have to change the .run/*.xml files to
+// reflect the change in relative path.  This is used by intellij:
+//  -ddatabase.jdbc.directory=$ProjectFileDir$/applications/workers/release/combined-worker/drivers
+def download = tasks.register("download", Copy) {
+    from configurations.drivers
+    into 'drivers'
+}
+
+tasks.named('jar', Jar) {
+    dependsOn(download)
+}
+
+publishing {
+    publications {
+        configureEach {
+            pom {
+                if (!project.hasProperty('busImpl')) {
+                    name = 'corda-combined-worker'
+                    description = 'corda-combined-worker'
+                } else {
+                    name = 'corda-combined-worker-kakfa'
+                    description = 'corda-combined-worker-kafka'
+                }
+
+                url = 'https://github.com/corda/corda-runtime-os'
+                scm {
+                    url = 'https://github.com/corda/corda-runtime-os'
+                }
+
+                licenses {
+                    license {
+                        name = licenseName
+                        url = licenseUrl
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'R3'
+                        name = 'R3'
+                        email = 'dev@corda.net'
+                    }
+                }
+            }
+        }
+        if (!project.hasProperty('busImpl')) {
+            maven(MavenPublication) {
+                artifactId 'corda-combined-worker'
+                groupId project.group
+            }
+        } else {
+            kafkaCombinedWorker(MavenPublication) {
+                artifactId 'corda-combined-worker-kafka'
+                artifact appJar
+                groupId project.group
+                version project.version
+            }
+        }
+    }
+}

@@ -1,0 +1,26 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+}
+
+description 'Corda Sandbox SCR-Using CPK'
+
+group 'com.example.sandbox'
+version ''
+
+cordapp {
+    targetPlatformVersion = platformVersion.toInteger()
+    workflow {
+        name 'Sandbox SCR-Using-CPK'
+        versionId 1
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+    cordaProvided "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'net.corda:corda-application'
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    cordaProvided "org.osgi:osgi.core"
+}

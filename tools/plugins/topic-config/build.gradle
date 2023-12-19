@@ -1,0 +1,58 @@
+plugins {
+    id 'distribution'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'corda.cli-plugin-packager'
+}
+
+ext {
+    releasable = false
+}
+
+group 'net.corda.cli.deployment'
+
+dependencies {
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
+    compileOnly "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    compileOnly "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
+
+    compileOnly "org.pf4j:pf4j:$pf4jVersion"
+    compileOnly "net.corda.cli.host:api:$pluginHostVersion"
+    kapt "org.pf4j:pf4j:$pf4jVersion"
+    kapt "info.picocli:picocli:$picocliVersion"
+
+    compileOnly platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-topic-schema:$cordaApiVersion"
+    implementation "org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:$kafkaClientVersion"
+    constraints {
+        implementation("org.xerial.snappy:snappy-java:$xerialSnappyVersion") {
+            because 'Kafka Client uses an older version of Snappy library which is exposed to CVE-2023-34455. ' +
+                    'This might be resolved in the future versions of Kafka Client.'
+        }
+        implementation('org.slf4j:slf4j-api') {
+            version {
+                strictly slf4jV2Version
+            }
+        }
+    }
+
+    testImplementation libs.bundles.test
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    testImplementation "org.pf4j:pf4j:$pf4jVersion"
+    testImplementation "net.corda.cli.host:api:$pluginHostVersion"
+    testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
+    testImplementation "org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:$kafkaClientVersion"
+}
+
+cliPlugin {
+    cliPluginClass = 'net.corda.cli.plugins.topicconfig.TopicPlugin'
+    cliPluginDescription = 'Plugin for creating, and updating topics and ACLs.'
+}
+
+tasks.named("installDist") {
+    dependsOn cliPlugin
+    def homePath = System.properties['user.home']
+    from cliPlugin
+    into "$homePath/.corda/cli/plugins"
+}

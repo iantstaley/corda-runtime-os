@@ -1,0 +1,22 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api "org.apache.avro:avro:$avroVersion"
+    constraints {
+        implementation("org.apache.commons:commons-compress:$commonsCompressVersion") {
+            because "CVE-2023-42503, current version of Avro uses an outdated version"
+        }
+    }
+    
+    api "net.corda:corda-avro-schema"
+}
+
+description 'Schema Registry Library API'

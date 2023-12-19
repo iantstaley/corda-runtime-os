@@ -1,0 +1,31 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Permission Manager Implementation'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-config-schema"
+    implementation "net.corda:corda-crypto"
+
+    implementation project(":libs:permissions:permission-manager")
+    implementation project(":libs:permissions:permission-management-cache")
+    implementation project(":libs:permissions:permission-validation-cache")
+    implementation project(":libs:permissions:permission-password")
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(":libs:utilities")
+    implementation project(":libs:cache:cache-caffeine")
+    implementation project(":libs:crypto:crypto-core")
+
+}

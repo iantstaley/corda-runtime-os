@@ -1,0 +1,30 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'net.corda.plugins.cordapp-cpb2'
+}
+
+cordapp {
+    targetPlatformVersion = platformVersion.toInteger()
+    minimumPlatformVersion = platformVersion.toInteger()
+    workflow {
+        name "Flow Worker Development"
+        versionId 1
+        vendor "R3"
+    }
+}
+
+dependencies {
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'net.corda:corda-application'
+    cordaProvided 'net.corda:corda-crypto-extensions'
+    cordaProvided 'net.corda:corda-ledger-utxo'
+    cordaProvided 'net.corda:corda-notary-plugin'
+
+
+    cordapp project(':testing:bundles:testing-dogs')
+    cordapp project(':testing:bundles:cpk-for-duplicate-changelog-testing')
+    // Common and API packages pulled in as transitive dependencies through client
+    cordapp project(':notary-plugins:notary-plugin-non-validating:notary-plugin-non-validating-client')
+    cordapp project(':testing:cpbs:ledger-utxo-demo-contract')
+
+}

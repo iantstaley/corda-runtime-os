@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Implementation of permission validation cache for the permission system.'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:permissions:permission-validation-cache")
+    implementation project(":libs:permissions:permission-cache-common")
+
+}

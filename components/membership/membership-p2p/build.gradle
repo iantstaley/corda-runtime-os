@@ -1,0 +1,31 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Membership P2P message handling'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(":libs:lifecycle:lifecycle")
+
+    implementation 'net.corda:corda-membership'
+    implementation 'net.corda:corda-topic-schema'
+    implementation 'net.corda:corda-config-schema'
+
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:layered-property-map')
+    implementation project(':libs:membership:membership-common')
+    implementation project(':libs:messaging:messaging')
+    implementation project(':libs:utilities')
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':components:crypto:crypto-client')
+    implementation project(':components:membership:locally-hosted-identities-service')
+    implementation project(":libs:serialization:serialization-avro")
+
+    testImplementation project(':testing:test-utilities')
+}

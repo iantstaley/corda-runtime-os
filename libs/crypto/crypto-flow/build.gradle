@@ -1,0 +1,22 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Crypto flow helpers'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    implementation 'net.corda:corda-application'
+    implementation 'net.corda:corda-avro-schema'
+    api project(':libs:crypto:cipher-suite')
+
+    implementation project(":libs:crypto:cipher-suite-impl")
+}
+
+

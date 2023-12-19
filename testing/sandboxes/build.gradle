@@ -1,0 +1,44 @@
+plugins {
+    id 'corda.common-library'
+}
+
+description 'Creates sandboxes for testing purposes'
+
+dependencies {
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    compileOnly "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    compileOnly "org.osgi:org.osgi.service.cm:$osgiCmVersion"
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    api project(':libs:sandbox')
+    api project(":libs:packaging:packaging")
+    api project(':libs:packaging:packaging-core')
+    api project(':libs:virtual-node:virtual-node-info')
+    api libs.junit.api
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation project(':components:membership:membership-group-read')
+    implementation project(':components:virtual-node:cpi-info-read-service')
+    implementation project(':components:virtual-node:virtual-node-info-read-service')
+    implementation project(':components:virtual-node:cpk-read-service')
+    implementation(project(":testing:packaging-test-utilities")) {
+        exclude group: 'org.mockito'
+    }
+
+    runtimeOnly "org.apache.felix:org.apache.felix.configadmin:$felixConfigAdminVersion"
+    runtimeOnly project(':libs:sandbox-internal')
+}
+
+tasks.named('jar', Jar) {
+    bundle {
+        bnd '''\
+Bundle-SymbolicName: \${project.group}.sandbox-testing
+Import-Package: \
+    org.junit.jupiter.api.extension;resolution:=optional,\
+    *
+'''
+    }
+}

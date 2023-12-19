@@ -1,0 +1,22 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Crypto serialization'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    api project(':libs:crypto:cipher-suite')
+    api 'net.corda:corda-serialization'
+    implementation "org.apache.commons:commons-lang3:$commonsLangVersion"
+
+    implementation project(":libs:crypto:crypto-core")
+    implementation project(':libs:serialization:serialization-internal')
+    implementation project(":libs:utilities")
+}

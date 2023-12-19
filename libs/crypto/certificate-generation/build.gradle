@@ -1,0 +1,15 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'P2P Test Stub Certificates Authority'
+
+dependencies {
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-base'
+    implementation 'net.corda:corda-avro-schema'
+    implementation 'net.corda:corda-crypto'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation project(':libs:crypto:cipher-suite')
+}

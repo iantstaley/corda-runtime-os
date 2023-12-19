@@ -1,0 +1,26 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+    id 'corda.osgi-test-conventions'
+}
+
+description 'Layered property map internal API and implementation'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    api "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-serialization"
+    implementation project(':libs:crypto:cipher-suite')
+
+    testImplementation "net.corda:corda-crypto"
+    testImplementation project(':libs:crypto:crypto-core')
+    testImplementation project(":testing:test-utilities")
+
+    integrationTestImplementation project(":libs:layered-property-map:layered-property-map-test-converter")
+}

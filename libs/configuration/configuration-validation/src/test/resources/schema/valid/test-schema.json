@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://corda.r3.com/schema/valid/test-schema.json",
+  "title": "Validation test schema",
+  "type": "object",
+  "properties": {
+    "testInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 500,
+      "default": 7
+    },
+    "anotherTestInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 500
+    },
+    "testString": {
+      "type": "string"
+    },
+    "testReference": {
+      "$ref": "https://corda.r3.com/schema/valid/test-reference.json",
+      "default": {}
+    },
+    "testObject": {
+      "type": "object",
+      "default": {
+        "testPropertyA": {
+          "a": 1
+        }
+      },
+      "properties": {
+        "testPropertyA": {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "testPropertyB": {
+          "type": "object",
+          "properties": {
+            "b": {
+              "type": "integer",
+              "default": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "dependencies": {
+        "testPropertyA": {
+          "not": {
+            "required": [
+              "testPropertyB"
+            ]
+          }
+        },
+        "testPropertyB": {
+          "not": {
+            "required": [
+              "testPropertyA"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

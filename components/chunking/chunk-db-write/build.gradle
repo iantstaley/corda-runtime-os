@@ -1,0 +1,19 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "Chunk data base writer"
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(':libs:lifecycle:lifecycle')
+    implementation 'javax.persistence:javax.persistence-api'
+    implementation 'net.corda:corda-base'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api project(':components:virtual-node:cpi-info-write-service')
+}

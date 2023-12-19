@@ -1,0 +1,539 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        def cordaUseCache = System.getenv("CORDA_USE_CACHE")
+        if (cordaUseCache != null) {
+            maven {
+                url = "${artifactoryContextUrl}/${cordaUseCache}"
+                name = "R3 Maven remote repositories"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = settings.ext.find('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = settings.ext.find('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                url "${artifactoryContextUrl}/corda-os-maven"
+                content {
+                    includeGroupByRegex 'net\\.corda\\.cordapp(\\..*)?'
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = settings.ext.find('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = settings.ext.find('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+            gradlePluginPortal {
+                content {
+                    excludeGroupByRegex 'net\\.corda\\.cordapp(\\..*)?'
+                }
+            }
+        }
+    }
+    plugins {
+        id 'com.gradle.enterprise' version gradleEnterpriseVersion
+        id 'com.gradle.common-custom-user-data-gradle-plugin' version gradleDataPlugin
+        id 'net.corda.cordapp.cordapp-configuration' version cordaApiVersion
+        id 'net.corda.plugins.cordapp-cpk2' version cordaGradlePluginsVersion
+        id 'net.corda.plugins.cordapp-cpb2' version cordaGradlePluginsVersion
+        id 'io.gitlab.arturbosch.detekt' version detektPluginVersion
+        id 'com.github.ben-manes.versions' version dependencyCheckVersion
+        id "com.jfrog.artifactory" version artifactoryPluginVersion
+        id 'io.snyk.gradle.plugin.snykplugin' version snykVersion
+        id 'org.jetbrains.dokka' version dokkaVersion
+        id "org.cyclonedx.bom" version cyclonedxVersion
+    }
+}
+
+plugins {
+    id 'com.gradle.common-custom-user-data-gradle-plugin'
+    id 'com.gradle.enterprise'
+}
+
+rootProject.name = 'corda-runtime-os'
+include 'applications:examples:sandbox-app'
+include 'applications:examples:sandbox-app:example-cpi'
+include 'applications:tools:p2p-test:app-simulator'
+include 'applications:tools:p2p-test:fake-ca'
+include 'applications:tools:p2p-test:dump-topic'
+include 'applications:workers:release:combined-worker'
+include 'applications:workers:release:crypto-worker'
+include 'applications:workers:release:db-worker'
+include 'applications:workers:release:flow-worker'
+include 'applications:workers:release:flow-mapper-worker'
+include 'applications:workers:release:verification-worker'
+include 'applications:workers:release:member-worker'
+include 'applications:workers:release:p2p-gateway-worker'
+include 'applications:workers:release:p2p-link-manager-worker'
+include 'applications:workers:release:persistence-worker'
+include 'applications:workers:release:token-selection-worker'
+include 'applications:workers:release:rest-worker'
+include 'applications:workers:release:uniqueness-worker'
+include 'applications:workers:worker-common'
+include 'applications:workers:workers-smoketest'
+include 'components:configuration:configuration-rest-resource-service-impl'
+include 'components:configuration:configuration-read-service'
+include 'components:configuration:configuration-read-service-impl'
+include 'components:configuration:configuration-write-service'
+include 'components:configuration:configuration-write-service-impl'
+include 'components:chunking:chunk-read-service'
+include 'components:chunking:chunk-read-service-impl'
+include 'components:chunking:chunk-db-write'
+include 'components:chunking:chunk-db-write-impl'
+include 'components:crypto:crypto-client'
+include 'components:crypto:crypto-client-hsm'
+include 'components:crypto:crypto-client-hsm-impl'
+include 'components:crypto:crypto-client-impl'
+include 'components:crypto:crypto-component-core-impl'
+include 'components:crypto:crypto-component-test-utils'
+include 'components:crypto:crypto-persistence-impl'
+include 'components:crypto:crypto-persistence-model'
+include 'components:crypto:crypto-hes'
+include 'components:crypto:crypto-hes-core-impl'
+include 'components:crypto:crypto-hes-impl'
+include 'components:crypto:crypto-persistence'
+include 'components:crypto:crypto-rest'
+include 'components:crypto:crypto-service-impl'
+include 'components:crypto:crypto-softhsm-impl'
+include 'components:db:db-connection-manager'
+include 'components:db:db-connection-manager-impl'
+include 'components:domino-logic'
+include 'components:external-messaging-services'
+include 'components:flow:flow-mapper-service'
+include 'components:flow:flow-mapper'
+include 'components:flow:flow-mapper-impl'
+include 'components:flow:flow-p2p-filter-service'
+include 'components:flow:flow-rest-resource-service'
+include 'components:flow:flow-rest-resource-service-impl'
+include 'components:flow:flow-service'
+include 'components:gateway'
+include 'components:rest-gateway-comp'
+include 'components:kafka-topic-admin'
+include 'components:ledger:ledger-common-flow'
+include 'components:ledger:ledger-common-flow-api'
+include 'components:ledger:ledger-consensual-flow'
+include 'components:ledger:notary-worker-selection'
+include 'components:ledger:notary-worker-selection-impl'
+include 'components:ledger:ledger-persistence:testing-datamodel'
+include 'components:ledger:ledger-persistence'
+include 'components:ledger:ledger-utxo-flow'
+include 'components:ledger:ledger-utxo-token-cache'
+include 'components:ledger:ledger-verification'
+include 'components:link-manager'
+include 'components:membership:certificates-client'
+include 'components:membership:certificates-client-impl'
+include 'components:membership:certificates-service'
+include 'components:membership:certificates-service-impl'
+include 'components:membership:group-params-writer-service'
+include 'components:membership:group-params-writer-service-impl'
+include 'components:membership:mtls-mgm-allowed-list-reader-writer'
+include 'components:membership:mtls-mgm-allowed-list-reader-writer-impl'
+include 'components:membership:group-policy'
+include 'components:membership:group-policy-impl'
+include 'components:membership:group-policy-configuration-validation'
+include 'components:membership:group-policy-configuration-validation-impl'
+include 'components:membership:membership-client'
+include 'components:membership:membership-client-impl'
+include 'components:membership:membership-persistence-client'
+include 'components:membership:membership-persistence-client-impl'
+include 'components:membership:membership-persistence-service'
+include 'components:membership:membership-persistence-service-impl'
+include 'components:membership:membership-group-read'
+include 'components:membership:membership-group-read-impl'
+include 'components:membership:membership-rest'
+include 'components:membership:membership-rest-impl'
+include 'components:membership:membership-p2p'
+include 'components:membership:membership-p2p-impl'
+include 'components:membership:membership-service'
+include 'components:membership:membership-service-impl'
+include 'components:membership:locally-hosted-identities-service'
+include 'components:membership:locally-hosted-identities-service-impl'
+include 'components:membership:registration'
+include 'components:membership:registration-impl'
+include 'components:membership:synchronisation'
+include 'components:membership:synchronisation-impl'
+include 'components:membership:members-client-certificate-publisher-service'
+include 'components:membership:members-client-certificate-publisher-service-impl'
+include 'components:permissions:permission-management-service'
+include 'components:permissions:permission-management-cache-service'
+include 'components:permissions:permission-storage-reader-service'
+include 'components:permissions:permission-storage-writer-service'
+include 'components:permissions:permission-validation-service'
+include 'components:permissions:permission-validation-cache-service'
+include 'components:permissions:permission-rest-resource-impl'
+include 'components:persistence:entity-processor-service'
+include 'components:persistence:entity-processor-service-impl'
+include 'components:persistence:persistence-service-common'
+include 'components:rbac-security-manager-service'
+include 'components:reconciliation:reconciliation'
+include 'components:reconciliation:reconciliation-impl'
+include 'components:scheduler'
+include 'components:security-manager'
+include 'components:uniqueness:backing-store'
+include 'components:uniqueness:backing-store-impl'
+include 'components:uniqueness:uniqueness-checker'
+include 'components:uniqueness:uniqueness-checker-client-service-impl'
+include 'components:uniqueness:uniqueness-checker-impl'
+include 'components:virtual-node:cpi-info-read-service'
+include 'components:virtual-node:cpi-info-read-service-impl'
+include 'components:virtual-node:cpi-info-write-service'
+include 'components:virtual-node:cpi-info-write-service-impl'
+include 'components:virtual-node:cpi-upload-rest-service'
+include 'components:virtual-node:cpk-read-service'
+include 'components:virtual-node:cpk-read-service-impl'
+include 'components:virtual-node:cpk-write-service'
+include 'components:virtual-node:cpk-write-service-impl'
+include 'components:virtual-node:sandbox-amqp'
+include 'components:virtual-node:sandbox-crypto'
+include 'components:virtual-node:sandbox-group-context-service'
+include 'components:virtual-node:sandbox-group-context-service:test-impl-one'
+include 'components:virtual-node:sandbox-group-context-service:test-impl-two'
+include 'components:virtual-node:sandbox-json'
+include 'components:virtual-node:virtual-node-info-read-service'
+include 'components:virtual-node:virtual-node-info-read-service-rest-extensions'
+include 'components:virtual-node:virtual-node-management-sender'
+include 'components:virtual-node:virtual-node-rest-service-impl'
+include 'components:virtual-node:virtual-node-rest-maintenance-impl'
+include 'components:virtual-node:virtual-node-write-service'
+include 'components:virtual-node:virtual-node-write-service-impl'
+include 'libs:antlr'
+include 'libs:application:addon'
+include 'libs:application:addon-osgi-test'
+include 'libs:application:application-db-setup'
+include 'libs:application:application-impl'
+include 'libs:application:banner'
+include 'libs:base-internal'
+include 'libs:cache:cache-caffeine'
+include 'libs:chunking:chunking-core'
+include 'libs:chunking:chunking-datamodel'
+include 'libs:configuration:configuration-core'
+include 'libs:configuration:configuration-datamodel'
+include 'libs:configuration:configuration-endpoints'
+include 'libs:configuration:configuration-merger'
+include 'libs:configuration:configuration-osgi-test'
+include 'libs:configuration:configuration-schema:p2p'
+include 'libs:configuration:configuration-validation'
+include 'libs:crypto:cipher-suite'
+include 'libs:crypto:cipher-suite-impl'
+include 'libs:crypto:crypto-config-impl'
+include 'libs:crypto:crypto-core'
+include 'libs:crypto:crypto-flow'
+include 'libs:crypto:crypto-impl'
+include 'libs:crypto:merkle-impl'
+include 'libs:crypto:crypto-serialization-impl'
+include 'libs:crypto:crypto-utils'
+include 'libs:crypto:delegated-signing'
+include 'libs:crypto:certificate-generation'
+include 'libs:datasync'
+include 'libs:db:db-admin'
+include 'libs:db:db-admin-impl'
+include 'libs:db:db-core'
+include 'libs:db:db-orm'
+include 'libs:db:db-orm-impl'
+include 'libs:db:osgi-integration-tests'
+include 'libs:external-messaging'
+include 'libs:flows:external-event-responses'
+include 'libs:flows:external-event-responses-impl'
+include 'libs:flows:flow-api'
+include 'libs:flows:session-manager'
+include 'libs:flows:session-manager-impl'
+include 'libs:flows:flow-utils'
+include 'libs:rest:rest'
+include 'libs:rest:rest-security-read'
+include 'libs:rest:rest-tools'
+include 'libs:rest:json-serialization'
+include 'libs:rest:rest-server'
+include 'libs:rest:rest-server-impl'
+include 'libs:rest:ssl-cert-read'
+include 'libs:rest:ssl-cert-read-impl'
+include 'libs:rest:rest-common'
+include 'libs:rest:rest-client'
+include 'libs:rest:rest-test-common'
+include 'libs:rest:rbac-security-manager'
+include 'libs:kotlin-heap-fix'
+include 'libs:kotlin-reflection'
+include 'libs:kotlin-reflection:kotlin-reflection-test-api'
+include 'libs:kotlin-reflection:kotlin-reflection-test-example'
+include 'libs:layered-property-map'
+include 'libs:layered-property-map:layered-property-map-test-converter'
+include 'libs:ledger:ledger-common-data'
+include 'libs:ledger:ledger-consensual-data'
+include 'libs:ledger:ledger-utxo-data'
+include 'libs:ledger:ledger-utxo-transaction-verifier'
+include 'libs:lifecycle:lifecycle'
+include 'libs:lifecycle:lifecycle-impl'
+include 'libs:lifecycle:lifecycle-test-impl'
+include 'libs:lifecycle:registry'
+include 'libs:membership:certificates-datamodel'
+include 'libs:membership:membership-common'
+include 'libs:membership:membership-datamodel'
+include 'libs:membership:membership-impl'
+include 'libs:membership:certificates-common'
+include 'libs:membership:schema-validation'
+include 'libs:membership:network-info'
+include 'libs:messaging:db-message-bus-datamodel'
+include 'libs:messaging:db-message-bus-impl'
+include 'libs:messaging:db-topic-admin-impl'
+include 'libs:messaging:kafka-message-bus-impl'
+include 'libs:messaging:kafka-topic-admin-impl'
+include 'libs:messaging:message-bus'
+include 'libs:messaging:messaging'
+include 'libs:messaging:messaging-impl'
+include 'libs:messaging:topic-admin'
+include 'libs:metrics'
+include 'libs:permissions:permission-cache-common'
+include 'libs:permissions:permission-validation-cache'
+include 'libs:permissions:permission-validation-cache-impl'
+include 'libs:permissions:permission-management-cache'
+include 'libs:permissions:permission-management-cache-impl'
+include 'libs:permissions:permission-common'
+include 'libs:permissions:permission-endpoint'
+include 'libs:permissions:permission-manager'
+include 'libs:permissions:permission-manager-impl'
+include 'libs:permissions:permission-storage-common'
+include 'libs:permissions:permission-storage-reader'
+include 'libs:permissions:permission-storage-reader-impl'
+include 'libs:permissions:permission-storage-writer'
+include 'libs:permissions:permission-storage-writer-impl'
+include 'libs:platform-info'
+include 'libs:p2p-crypto'
+include 'libs:packaging:packaging'
+include 'libs:packaging:packaging-core'
+include 'libs:packaging:packaging:test:contract-cpk'
+include 'libs:packaging:packaging:test:workflow-cpk'
+include 'libs:packaging:packaging-verify'
+include 'libs:permissions:permission-datamodel'
+include 'libs:permissions:permission-validation'
+include 'libs:permissions:permission-validation-impl'
+include 'libs:permissions:permission-password'
+include 'libs:sandbox'
+include 'libs:sandbox-hooks'
+include 'libs:sandbox-internal'
+include 'libs:sandbox-internal:sandbox-cpk-library'
+include 'libs:sandbox-internal:sandbox-cpk-one'
+include 'libs:sandbox-internal:sandbox-cpk-two'
+include 'libs:sandbox-internal:sandbox-cpk-three'
+include 'libs:sandbox-internal:sandbox-fragment-cpk'
+include 'libs:sandbox-internal:sandbox-fragment-cpk:fragment'
+include 'libs:sandbox-internal:sandbox-irresolvable-cpk'
+include 'libs:sandbox-internal:sandbox-shadow-cpk'
+include 'libs:sandbox-types'
+include 'libs:scheduler:scheduler-datamodel'
+include 'libs:schema-registry:schema-registry'
+include 'libs:schema-registry:schema-registry-impl'
+include 'libs:serialization:serialization-checkpoint-api'
+include 'libs:serialization:json-serializers'
+include 'libs:serialization:json-validator'
+include 'libs:serialization:kryo-serializers'
+include 'libs:serialization:serialization-amqp'
+include 'libs:serialization:serialization-amqp:cpk-swap-original'
+include 'libs:serialization:serialization-amqp:cpk-swap-replacement'
+include 'libs:serialization:serialization-amqp:cpk-evolution-newer'
+include 'libs:serialization:serialization-amqp:cpk-evolution-older'
+include 'libs:serialization:serialization-amqp:cpk-one'
+include 'libs:serialization:serialization-amqp:cpk-two'
+include 'libs:serialization:serialization-amqp:cpk-three'
+include 'libs:serialization:serialization-amqp:cpk-four'
+include 'libs:serialization:serialization-amqp:cpk-library'
+include 'libs:serialization:serialization-amqp:cpk-using-lib'
+include 'libs:serialization:serialization-amqp:cpk-platform-type-custom-serializer'
+include 'libs:serialization:serialization-avro'
+include 'libs:serialization:serialization-encoding'
+include 'libs:serialization:serialization-internal'
+include 'libs:serialization:serialization-kryo'
+include 'libs:serialization:serialization-kryo:cpks:serializable-cpk-one'
+include 'libs:serialization:serialization-kryo:cpks:serializable-cpk-two'
+include 'libs:task-manager'
+include 'libs:uniqueness:common'
+include 'libs:utilities'
+include 'libs:state-manager:state-manager-api'
+include 'libs:state-manager:state-manager-db-impl'
+include 'libs:tracing'
+include 'libs:tracing-impl'
+include 'libs:virtual-node:virtual-node-common'
+include 'libs:virtual-node:cpi-datamodel'
+include 'libs:virtual-node:cpi-upload-endpoints'
+include 'libs:virtual-node:cpi-upload-manager'
+include 'libs:virtual-node:cpi-upload-manager-impl'
+include 'libs:virtual-node:sandbox-group-context'
+include 'libs:virtual-node:virtual-node-datamodel'
+include 'libs:virtual-node:virtual-node-endpoints'
+include 'libs:virtual-node:virtual-node-endpoints-maintenance'
+include 'libs:virtual-node:virtual-node-info'
+include 'libs:web:web'
+include 'libs:web:web-impl'
+include 'notary-plugins:notary-plugin-common'
+include 'notary-plugins:notary-plugin-non-validating:notary-plugin-non-validating-api'
+include 'notary-plugins:notary-plugin-non-validating:notary-plugin-non-validating-client'
+include 'notary-plugins:notary-plugin-non-validating:notary-plugin-non-validating-server'
+include 'notary-plugins:notary-plugin-contract-verifying:notary-plugin-contract-verifying-api'
+include 'notary-plugins:notary-plugin-contract-verifying:notary-plugin-contract-verifying-client'
+include 'notary-plugins:notary-plugin-contract-verifying:notary-plugin-contract-verifying-server'
+include 'osgi-framework-api'
+include 'osgi-framework-bootstrap'
+include 'processors:crypto-processor'
+include 'processors:db-processor'
+include 'processors:flow-processor'
+include 'processors:flow-mapper-processor'
+include 'processors:gateway-processor'
+include 'processors:link-manager-processor'
+include 'processors:member-processor'
+include 'processors:persistence-processor'
+include 'processors:rest-processor'
+include 'processors:scheduler-processor'
+include 'processors:token-cache-processor'
+include 'processors:uniqueness-processor'
+include 'processors:verification-processor'
+include 'testing:apps:test-app'
+include 'testing:bundles:cpk-for-duplicate-changelog-testing'
+include 'testing:bundles:testing-cats'
+include 'testing:bundles:testing-dogs'
+include 'testing:bundles:testing-fish'
+include 'testing:cpbs:calculator'
+include 'testing:cpbs:crypto-custom-digest-one-cpk'
+include 'testing:cpbs:crypto-custom-digest-one-consumer'
+include 'testing:cpbs:crypto-custom-digest-two-cpk'
+include 'testing:cpbs:crypto-custom-digest-two-consumer'
+include 'testing:cpbs:ledger-consensual-demo-app'
+include 'testing:cpbs:ledger-consensual-demo-contract'
+include 'testing:cpbs:ledger-utxo-demo-app'
+include 'testing:cpbs:ledger-utxo-demo-contract'
+include 'testing:cpbs:extendable-cpb'
+include 'testing:cpbs:test-cordapp'
+include 'testing:cpbs:mandelbrot'
+include 'testing:cpbs:sandbox-messenger-cpk'
+include 'testing:cpbs:sandbox-scr-cpk'
+include 'testing:cpbs:sandbox-security-manager-one'
+include 'testing:cpbs:sandbox-security-manager-two'
+include 'testing:cpbs:sandbox-contract-cpk'
+include 'testing:cpbs:sandbox-singletons-cpk'
+include 'testing:cpbs:split-packages:split-packages-one'
+include 'testing:cpbs:split-packages:split-packages-one:library-one'
+include 'testing:cpbs:split-packages:split-packages-two'
+include 'testing:cpbs:split-packages:split-packages-two:library-two'
+include 'testing:cpbs:test-cordapp-for-vnode-upgrade-testing-v1'
+include 'testing:cpbs:test-cordapp-for-vnode-upgrade-testing-v2'
+include 'testing:cpbs:packaging-verification-app-v1'
+include 'testing:cpbs:packaging-verification-contract-v1'
+include 'testing:crypto-testkit'
+include 'testing:db-hsqldb-json'
+include 'testing:db-message-bus-testkit'
+include 'testing:db-testkit'
+include 'testing:e2e-test-utilities'
+include 'testing:evm-interop-contracts'
+include 'testing:flow:dummy-link-manager'
+include 'testing:flow:external-events'
+include 'testing:flow:flow-utilities'
+include 'testing:layered-property-map-testkit'
+include 'testing:ledger:ledger-common-base-test'
+include 'testing:ledger:ledger-common-base-integration-test'
+include 'testing:ledger:ledger-common-testkit'
+include 'testing:ledger:ledger-common-empty-app'
+include 'testing:ledger:ledger-consensual-base-test'
+include 'testing:ledger:ledger-consensual-testkit'
+include 'testing:ledger:ledger-consensual-state-app'
+include 'testing:ledger:ledger-hsqldb'
+include 'testing:ledger:ledger-utxo-base-test'
+include 'testing:ledger:ledger-utxo-testkit'
+include 'testing:ledger:ledger-utxo-state-app'
+include 'testing:kryo-serialization-testkit'
+include 'testing:message-patterns'
+include 'testing:p2p:inmemory-messaging-impl'
+include 'testing:p2p:certificates'
+include 'testing:packaging-test-utilities'
+include 'testing:persistence-testkit'
+include 'testing:sandboxes'
+include 'testing:sandboxes:test-api'
+include 'testing:sandboxes-testkit'
+include 'testing:security-manager-utilities'
+include 'testing:test-serialization'
+include 'testing:test-utilities'
+include 'testing:uniqueness:backing-store-fake'
+include 'testing:uniqueness:uniqueness-utilities'
+include 'testing:cpi-info-read-service-fake'
+include 'testing:virtual-node-info-read-service-fake'
+include 'testing:group-policy-test-common'
+include 'tools:plugins:plugins-rest'
+include 'tools:plugins:db-config'
+include 'tools:plugins:initial-config'
+include 'tools:plugins:initial-rbac'
+include 'tools:plugins:network'
+include 'tools:plugins:package'
+include 'tools:plugins:preinstall'
+include 'tools:plugins:secret-config'
+include 'tools:plugins:topic-config'
+include 'tools:plugins:virtual-node'
+
+// The following logic dictates if we use the composite build gradle functionality,
+// If this evaluates to true local source code will be used in place of binary dependencies.
+// This is intended for local use only. The checks in place should prevent this from being triggered on a Jenkins server where we would always want to use the Binaries.
+if (compositeBuild.toBoolean() && file(cordaApiLocation).exists()) {
+    includeBuild(cordaApiLocation) {
+        dependencySubstitution {
+            substitute module('net.corda:corda-application') using project(':application')
+            substitute module('net.corda:corda-base') using project(':base')
+            substitute module('net.corda:corda-api') using project(':corda-api')
+            substitute module('net.corda:corda-crypto') using project(':crypto')
+            substitute module('net.corda:corda-crypto-extensions') using project(':crypto-extensions')
+            substitute module('net.corda:corda-avro-schema') using project(':data:avro-schema')
+            substitute module('net.corda:corda-config-schema') using project(':data:config-schema')
+            substitute module('net.corda:corda-db-schema') using project(':data:db-schema')
+            substitute module('net.corda:corda-membership-schema') using project(':data:membership-schema')
+            substitute module('net.corda:corda-topic-schema') using project(':data:topic-schema')
+            substitute module('net.corda:corda-rbac-schema') using project(':data:rbac-schema')
+            substitute module('net.corda:corda-ledger-common') using project(':ledger:ledger-common')
+            substitute module('net.corda:corda-ledger-consensual') using project(':ledger:ledger-consensual')
+            substitute module('net.corda:corda-ledger-utxo') using project(':ledger:ledger-utxo')
+            substitute module('net.corda:corda-membership') using project(':membership')
+            substitute module('net.corda:corda-serialization') using project(':serialization')
+            substitute module('net.corda:corda-notary-plugin') using project(':ledger:notary-plugin')
+        }
+    }
+}
+if (compositeBuild.toBoolean() && file(cordaCliHostLocation).exists()) {
+    includeBuild(cordaCliHostLocation) {
+        dependencySubstitution {
+            substitute module("net.corda.cli.host:corda-cli") using project(":app")
+            substitute module("net.corda.cli.host:api") using project(":api")
+            substitute module("net.corda.cli.host:plugins") using project(":plugins")
+        }
+    }
+}
+
+gradleEnterprise {
+    server = gradleEnterpriseUrl
+    allowUntrustedServer = false
+    def apiKey = settings.ext.find('CORDA_GRADLE_SCAN_KEY') ?: System.getenv('CORDA_GRADLE_SCAN_KEY')
+    accessKey = apiKey
+    buildScan {
+        if (apiKey?.trim()) {
+            publishAlways()
+            capture {
+                taskInputFiles = true
+            }
+            uploadInBackground = false
+        }
+    }
+    buildCache {
+        local {
+            enabled = true
+            removeUnusedEntriesAfterDays = 14  // Garbage collect if a cache item is not used in 2 weeks.
+        }
+        remote(gradleEnterprise.buildCache) {
+            // For the remote build cache we will populate cache only from Jenkins, all machines can pull from cache however.
+            if (System.getenv().containsKey("JENKINS_URL")) {
+                push = true
+                enabled = true
+            } else {
+                push = false
+                enabled = apiKey?.trim() ? true : false
+            }
+        }
+    }
+}

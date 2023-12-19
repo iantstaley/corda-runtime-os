@@ -1,0 +1,17 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Database ORM API'
+
+dependencies {
+    api 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    implementation project(":libs:db:db-core")
+
+    compileOnly "org.osgi:osgi.annotation"
+    api "javax.persistence:javax.persistence-api"
+
+}

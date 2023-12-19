@@ -1,0 +1,66 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "P2P Testing tools - Fake CA"
+
+configurations {
+    app {
+        canBeResolved = false
+    }
+}
+
+dependencies {
+    implementation platform('org.jetbrains.kotlin:kotlin-bom')
+    implementation project(':libs:crypto:certificate-generation')
+    implementation project(':libs:crypto:cipher-suite')
+    implementation project(':libs:utilities')
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation "info.picocli:picocli:$picocliVersion"
+    implementation 'net.corda:corda-crypto'
+}
+
+def jar = tasks.named('jar', Jar) {
+    archiveClassifier = 'ignore'
+}
+
+def appJarBaseName = "corda-${project.name}"
+
+def appJar = tasks.register('appJar', Jar) {
+    dependsOn jar
+
+    destinationDirectory = layout.buildDirectory.dir('bin')
+    archiveBaseName = appJarBaseName
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+    manifest {
+        attributes 'Main-Class': "net.corda.p2p.fake.ca.CaMainKt"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar.get()
+}
+
+artifacts {
+    archives appJar
+    app appJar
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId appJarBaseName
+            artifact appJar
+
+            try {
+                artifact tasks.named('sourcesJar', Jar)
+            } catch (UnknownTaskException ignored) {
+            }
+        }
+    }
+}

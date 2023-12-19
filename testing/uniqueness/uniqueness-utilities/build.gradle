@@ -1,0 +1,25 @@
+plugins {
+    id 'corda.common-library'
+}
+
+description 'Uniqueness checker testing library utilities'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    api "net.corda:corda-crypto"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-base'
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-application"
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    implementation libs.assertj.core
+    implementation libs.junit.api
+
+    implementation project(":libs:uniqueness:common")
+    implementation project(":libs:utilities")
+    implementation project(":testing:crypto-testkit")
+    implementation project(":testing:test-utilities")
+}

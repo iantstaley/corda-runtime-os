@@ -1,0 +1,246 @@
+bootstrap:
+  db:
+    cluster:
+      username:
+        value: "postgres"
+      password:
+        valueFrom:
+          secretKeyRef:
+            key: "postgres-password"
+    stateManager:
+      flow:
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+      flowMapper:
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+      tokenSelection:
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+      crypto:
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+      rest:
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  kafka:
+    sasl:
+      username:
+        value: "bootstrap"
+      password:
+        valueFrom:
+          secretKeyRef:
+            name: "kafka-credentials"
+            key: "bootstrap"
+
+
+logging:
+  format: "text"
+
+db:
+  cluster:
+    password:
+      valueFrom:
+        secretKeyRef:
+          key: "password"
+    username:
+      value: "user"
+
+kafka:
+  bootstrapServers: "prereqs-kafka:9092"
+  tls:
+    enabled: true
+    truststore:
+      valueFrom:
+        secretKeyRef:
+          name: "prereqs-kafka-0-tls"
+          key: "ca.crt"
+  sasl:
+    enabled: true
+
+workers:
+  crypto:
+    kafka:
+      sasl:
+        username:
+          value: "crypto"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "crypto"
+    stateManager:
+      db:
+        name: state-manager
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  db:
+    kafka:
+      sasl:
+        username:
+          value: "db"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "db"
+  flow:
+    kafka:
+      sasl:
+        username:
+          value: "flow"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "flow"
+    stateManager:
+      db:
+        name: state-manager
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  flowMapper:
+    kafka:
+      sasl:
+        username:
+          value: "flowMapper"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "flowMapper"
+    stateManager:
+      db:
+        name: state-manager
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  verification:
+    kafka:
+      sasl:
+        username:
+          value: "verification"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "verification"
+  membership:
+    kafka:
+      sasl:
+        username:
+          value: "membership"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "membership"
+  p2pGateway:
+    kafka:
+      sasl:
+        username:
+          value: "p2pGateway"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "p2pGateway"
+  p2pLinkManager:
+    kafka:
+      sasl:
+        username:
+          value: "p2pLinkManager"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "p2pLinkManager"
+  persistence:
+    kafka:
+      sasl:
+        username:
+          value: "persistence"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "persistence"
+  tokenSelection:
+    kafka:
+      sasl:
+        username:
+          value: "tokenSelection"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "tokenSelection"
+    stateManager:
+      db:
+        name: state-manager
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  rest:
+    kafka:
+      sasl:
+        username:
+          value: "rest"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "rest"
+    stateManager:
+      db:
+        name: state-manager
+        username:
+          value: "state-manager-user"
+        password:
+          valueFrom:
+            secretKeyRef:
+              key: "password"
+  uniqueness:
+    kafka:
+      sasl:
+        username:
+          value: "uniqueness"
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: "kafka-credentials"
+              key: "uniqueness"

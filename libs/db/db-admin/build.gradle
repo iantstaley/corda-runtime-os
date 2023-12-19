@@ -1,0 +1,15 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+
+description 'Database Admin API'
+
+dependencies {
+    api 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    compileOnly "org.osgi:osgi.annotation"
+    api "javax.persistence:javax.persistence-api"
+}

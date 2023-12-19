@@ -1,0 +1,111 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Backing store component implementation'
+
+sourceSets {
+    backingStoreBenchmark {
+        kotlin {
+            srcDirs = [ 'src/backingStoreBenchmark/kotlin' ]
+        }
+        resources {
+            srcDirs = [ 'src/backingStoreBenchmark/resources' ]
+        }
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
+
+
+kotlin {
+    target {
+        compilations.backingStoreBenchmark {
+            // Needed to expose internal JPA entity classes to this task
+            associateWith compilations.test
+
+            configurations {
+                backingStoreBenchmarkApi.extendsFrom integrationTestApi
+                backingStoreBenchmarkCompileOnly.extendsFrom integrationTestCompileOnly
+                backingStoreBenchmarkImplementation.extendsFrom integrationTestImplementation
+                backingStoreBenchmarkRuntimeOnly.extendsFrom integrationTestRuntimeOnly
+            }
+        }
+    }
+}
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    api project(':libs:lifecycle:lifecycle')
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-crypto"
+    implementation "net.corda:corda-db-schema"
+    implementation "net.corda:corda-ledger-utxo"
+    implementation "org.hibernate:hibernate-core:$hibernateVersion"
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(":components:uniqueness:backing-store")
+    implementation project(":components:db:db-connection-manager")
+    implementation project(":libs:metrics")
+    implementation project(":libs:uniqueness:common")
+    implementation project(":libs:utilities")
+
+    testImplementation "org.hibernate:hibernate-core:$hibernateVersion"
+    testImplementation project(":testing:crypto-testkit")
+    testImplementation project(":testing:test-utilities")
+    testImplementation project(":testing:uniqueness:backing-store-fake")
+    testImplementation project(":testing:uniqueness:uniqueness-utilities")
+
+    integrationTestApi project(":components:db:db-connection-manager")
+    integrationTestImplementation 'net.corda:corda-crypto'
+    integrationTestImplementation 'net.corda:corda-db-schema'
+    integrationTestImplementation project(':libs:db:db-admin')
+    integrationTestImplementation project(':libs:db:db-admin-impl')
+    integrationTestImplementation project(':libs:db:db-core')
+    integrationTestImplementation project(':libs:db:db-orm')
+    integrationTestImplementation project(':libs:db:db-orm-impl')
+    integrationTestImplementation project(':libs:lifecycle:lifecycle')
+    integrationTestImplementation project(':testing:db-testkit')
+
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    integrationTestRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+
+    backingStoreBenchmarkRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+
+    // For JSON serialization to DB
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+}
+
+tasks.named('jar', Jar) {
+    bundle {
+        bnd '''\
+DynamicImport-Package: org.hibernate.proxy
+'''
+    }
+}
+
+tasks.register('backingStoreBenchmark', Test) {
+    description = "Runs uniqueness checker backing store benchmarks."
+    group = "verification"
+
+    testClassesDirs = project.sourceSets["backingStoreBenchmark"].output.classesDirs
+    classpath = project.sourceSets["backingStoreBenchmark"].runtimeClasspath
+
+    systemProperty "bsBenchNumIterations", project.getProperty("bsBenchNumIterations")
+    systemProperty "bsBenchNumOpsPerIteration", project.getProperty("bsBenchNumOpsPerIteration")
+
+    systemProperty "databaseName", project.getProperty("databaseName")
+    systemProperty "databaseHost", project.getProperty("databaseHost")
+    systemProperty "databaseAdminPassword", project.getProperty("databaseAdminPassword")
+    systemProperty "databasePort", project.getProperty("databasePort")
+    systemProperty "databaseAdminUser", project.getProperty("databaseAdminUser")
+    systemProperty "databaseType", project.getProperty("databaseType")
+
+    // Ensures benchmark is always re-run if executed from the console
+    outputs.upToDateWhen { false }
+}

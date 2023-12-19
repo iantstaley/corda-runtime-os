@@ -1,0 +1,15 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+description 'Corda REST API'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    implementation "net.corda:corda-base"
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+}

@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://corda.net/schema/transaction-metadata.json",
+  "unevaluatedProperties": false,
+  "additionalProperties": false,
+  "title": "Root",
+  "type": "object",
+  "required": [
+    "cpiMetadata",
+    "cpkMetadata",
+    "digestSettings",
+    "ledgerModel",
+    "ledgerVersion",
+    "componentGroups",
+    "platformVersion",
+    "schemaVersion"
+  ],
+  "properties": {
+    "ledgerModel": {
+      "title": "Ledger model",
+      "type": "string",
+      "enum": [
+        "net.corda.ledger.utxo.data.transaction.UtxoLedgerTransactionImpl",
+        "net.corda.ledger.consensual.data.transaction.ConsensualLedgerTransactionImpl"
+      ],
+      "description": "The name of the class that implements this type of ledger transaction."
+    },
+    "digestSettings": {
+      "title": "Digest settings",
+      "description": "Settings relating to the Merkle tree digest algorithms.",
+      "type": "object",
+      "required": [
+        "batchMerkleTreeDigestProviderName",
+        "batchMerkleTreeDigestAlgorithmName",
+        "batchMerkleTreeDigestOptionsLeafPrefixB64",
+        "batchMerkleTreeDigestOptionsNodePrefixB64",
+        "rootMerkleTreeDigestProviderName",
+        "rootMerkleTreeDigestAlgorithmName",
+        "rootMerkleTreeDigestOptionsLeafPrefixB64",
+        "rootMerkleTreeDigestOptionsNodePrefixB64",
+        "componentMerkleTreeDigestProviderName",
+        "componentMerkleTreeDigestAlgorithmName",
+        "componentMerkleTreeEntropyAlgorithmName"
+      ],
+      "properties": {
+        "batchMerkleTreeDigestProviderName": {
+          "title": "Batch Merkle tree digest provider name",
+          "type": "string",
+          "description": "Class name of the digest provider for the batch Merkle tree.",
+          "default": "",
+          "examples": [
+            "TweakableHashDigestProvider"
+          ],
+          "pattern": "^.*$"
+        },
+        "batchMerkleTreeDigestAlgorithmName": {
+          "title": "Batch Merkle tree digest algorithm name",
+          "type": "string",
+          "description": "Algorithm name of the digest provider for the batch Merkle tree.",
+          "default": "",
+          "examples": [
+            "SHA-256D"
+          ],
+          "pattern": "^.*$"
+        },
+        "batchMerkleTreeDigestOptionsLeafPrefixB64": {
+          "title": "Batch Merkle tree digest options leaf prefix base64 encoded",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "bGVhZg=="
+          ],
+          "pattern": "^.*$"
+        },
+        "batchMerkleTreeDigestOptionsNodePrefixB64": {
+          "title": "Batch Merkle tree digest options node prefix base64 encoded",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "bm9kZQ=="
+          ],
+          "pattern": "^.*$"
+        },
+        "rootMerkleTreeDigestProviderName": {
+          "title": "Root Merkle tree digest provider name",
+          "type": "string",
+          "description": "Class name of the digest provider for the root Merkle tree.",
+          "default": "",
+          "examples": [
+            "TweakableHashDigestProvider"
+          ],
+          "pattern": "^.*$"
+        },
+        "rootMerkleTreeDigestAlgorithmName": {
+          "title": "Root Merkle tree digest algorithm name",
+          "type": "string",
+          "description": "Algorithm name of the digest provider for the root Merkle tree.",
+          "default": "",
+          "examples": [
+            "SHA-256D"
+          ],
+          "pattern": "^.*$"
+        },
+        "rootMerkleTreeDigestOptionsLeafPrefixB64": {
+          "title": "Root Merkle tree digest options leaf prefix base64 encoded",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "bGVhZg=="
+          ],
+          "pattern": "^.*$"
+        },
+        "rootMerkleTreeDigestOptionsNodePrefixB64": {
+          "title": "Root Merkle tree digest options node prefix base64 encoded",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "bm9kZQ=="
+          ],
+          "pattern": "^.*$"
+        },
+        "componentMerkleTreeDigestProviderName": {
+          "title": "Component Merkle tree digest provider name",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "NonceHashDigestProvider"
+          ],
+          "pattern": "^.*$"
+        },
+        "componentMerkleTreeDigestAlgorithmName": {
+          "title": "Component Merkle tree digest algorithm name",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "SHA-256D"
+          ],
+          "pattern": "^.*$"
+        },
+        "componentMerkleTreeEntropyAlgorithmName": {
+          "title": "Component Merkle tree entropy algorithm name",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "SHA-256D"
+          ],
+          "pattern": "^.*$"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "ledgerVersion": {
+      "title": "Ledger version",
+      "type": "integer",
+      "default": "",
+      "examples": [
+        1
+      ]
+    },
+    "cpiMetadata": {
+      "title": "CPI metadata",
+      "$ref": "#/definitions/package_metadata"
+    },
+    "cpkMetadata": {
+      "title": "CPK metadata",
+      "type": "array",
+      "default": [],
+      "items":{
+        "title": "Items",
+        "$ref": "#/definitions/package_metadata"
+      },
+      "minItems": 1
+    },
+    "componentGroups": {
+      "title": "Component group structure",
+      "description": "Java types or simple string representation of components without duplications",
+      "type": "array",
+      "default": [],
+      "examples": [
+        [
+          [
+            "metadata"
+          ],
+          [
+            "net.corda.v5.base.types.MemberX500Name",
+            "java.security.PublicKey",
+            "net.corda.v5.ledger.utxo.TimeWindow"
+          ],
+          [
+            "java.security.PublicKey"
+          ],
+          [
+            "net.corda.ledger.utxo.data.transaction.UtxoOutputInfoComponent"
+          ],
+          [
+            "CommandInfo"
+          ],
+          [
+            "net.corda.v5.crypto.SecureHash"
+          ],
+          [
+            "net.corda.v5.ledger.utxo.StateRef"
+          ],
+          [
+            "net.corda.v5.ledger.utxo.StateRef"
+          ],
+          [
+            "net.corda.v5.ledger.utxo.ContractState"
+          ],
+          [
+            "net.corda.v5.ledger.utxo.Command"
+          ]
+        ]
+      ],
+      "items": {
+        "title": "Component group",
+        "type": "array",
+        "items": {
+          "title": "Component",
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "platformVersion": {
+      "title": "Active platform version at the time of the creation of the transaction",
+      "type": "integer",
+      "default": "",
+      "examples": [
+        1
+      ]
+    },
+    "schemaVersion": {
+      "title": "Metadata schema version",
+      "type": "integer",
+      "default": "",
+      "examples": [
+        1
+      ]
+    },
+    "transactionSubtype": {
+      "title": "Transaction subtype",
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        null,
+        "NOTARY_CHANGE",
+        "GENERAL"
+      ]
+    },
+    "membershipGroupParametersHash": {
+      "title": "Membership group parameter's hash",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": "",
+      "examples": [
+        "SHA-256:98AF8725385586B41FEFF205B4E05A000823F78B5F8F5C02439CE8F67A781D90"
+      ],
+      "pattern": "^.*$"
+    }
+  },
+  "allOf": [
+    { "$ref": "#/definitions/if-consensual-ledger" },
+    { "$ref": "#/definitions/if-utxo-ledger" }
+  ],
+  "definitions": {
+    "package_metadata": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "signerSummaryHash",
+        "fileChecksum"
+      ],
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "default": "",
+          "examples": [ "TestPackage" ],
+          "pattern": "^.*$"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "0.0.1-test"
+          ],
+          "pattern": "^.*$"
+        },
+        "signerSummaryHash": {
+          "title": "Signer summary hash",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "46616B652D76616C7565"
+          ],
+          "pattern": "^.*$"
+        },
+        "fileChecksum": {
+          "title": "File checksum",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF"
+          ],
+          "pattern": "^.*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "if-consensual-ledger": {
+      "if": {
+        "properties": {
+          "ledgerModel": {
+            "const": "net.corda.ledger.consensual.data.transaction.ConsensualLedgerTransactionImpl"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "transactionSubtype": {
+            "title": "Transaction subtype",
+            "type": "null",
+            "enum": [
+              null
+            ]
+          },
+          "membershipGroupParametersHash": {
+            "title": "Membership group parameter's hash",
+            "type": "null"
+          }
+        }
+      }
+    },
+    "if-utxo-ledger": {
+      "if": {
+        "properties": {
+          "ledgerModel": {
+            "const": "net.corda.ledger.utxo.data.transaction.UtxoLedgerTransactionImpl"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "transactionSubtype": {
+            "title": "Transaction subtype",
+            "type": "string",
+            "enum": [
+              "NOTARY_CHANGE",
+              "GENERAL"
+            ]
+          },
+          "membershipGroupParametersHash": {
+            "title": "Membership group parameter's hash",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transactionSubtype",
+          "membershipGroupParametersHash"
+        ]
+      }
+    }
+  }
+}

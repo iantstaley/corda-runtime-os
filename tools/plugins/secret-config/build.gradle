@@ -1,0 +1,42 @@
+plugins {
+    id 'distribution'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'corda.cli-plugin-packager'
+}
+
+ext {
+    releasable = false
+}
+
+group 'net.corda.cli.deployment'
+
+dependencies {
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    compileOnly "org.pf4j:pf4j:$pf4jVersion"
+    compileOnly "net.corda.cli.host:api:$pluginHostVersion"
+
+    kapt "org.pf4j:pf4j:$pf4jVersion"
+    kapt "info.picocli:picocli:$picocliVersion"
+
+    implementation project(":libs:configuration:configuration-core")
+
+    testImplementation libs.bundles.test
+    testImplementation "org.pf4j:pf4j:$pf4jVersion"
+    testImplementation "com.github.stefanbirkner:system-lambda:$systemLambdaVersion"
+    testImplementation "net.corda.cli.host:api:$pluginHostVersion"
+}
+
+cliPlugin {
+    cliPluginClass = 'net.corda.cli.plugin.secretconfig.SecretConfigPlugin'
+    cliPluginDescription = 'A CLI plug-in to create a configuration secret given a salt and passphrase'
+}
+
+tasks.named("installDist") {
+    dependsOn cliPlugin
+    def homePath = System.properties['user.home']
+    from cliPlugin
+    into "$homePath/.corda/cli/plugins"
+}

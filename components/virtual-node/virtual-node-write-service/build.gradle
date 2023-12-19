@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "Virtual Node Write Service"
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    api project(':libs:lifecycle:lifecycle')
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(':libs:configuration:configuration-core')
+    implementation 'javax.persistence:javax.persistence-api'
+    implementation 'net.corda:corda-base'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api project(":components:reconciliation:reconciliation")
+    api project(':libs:virtual-node:virtual-node-info')
+
+}

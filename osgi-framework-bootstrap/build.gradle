@@ -1,0 +1,59 @@
+plugins {
+    id 'java-library'
+}
+
+description 'OSGi Framework Bootstrap'
+
+configurations {
+    testBundles {
+        attributes { attrs ->
+            attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.core'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(':osgi-framework-api')
+    implementation 'org.slf4j:slf4j-api'
+    implementation "org.slf4j:jul-to-slf4j:$slf4jVersion"
+    runtimeOnly "org.apache.felix:org.apache.felix.framework:$felixVersion"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    runtimeOnly "org.apache.logging.log4j:log4j-layout-template-json:$log4jVersion"
+
+    // Jackson dependencies for JSON formatted logs
+    runtimeOnly "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+    runtimeOnly "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    runtimeOnly "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+
+    testImplementation libs.mockito.core
+    testImplementation "org.apache.sling:org.apache.sling.testing.osgi-mock.junit5:$slingVersion"
+    testImplementation libs.junit.api
+    testImplementation libs.assertj.core
+    testRuntimeOnly libs.junit.engine
+
+    testBundles project(':testing:apps:test-app')
+}
+
+def copyBundles = tasks.register('copyBundles', Copy) {
+    into layout.buildDirectory.dir('resources/test/bundles')
+    from configurations.testBundles
+}
+
+tasks.named('test', Test) {
+    dependsOn copyBundles
+    doFirst {
+        def applicationBundleSet = configurations.testBundles.files.collect { "bundles/${it.name}" } as Set<String>
+        final applicationBundlesFile = new File(project.buildDir, "resources/test/application_bundles")
+        applicationBundlesFile.withWriter { writer ->
+            applicationBundleSet.each { line ->
+                writer.writeLine(line)
+            }
+        }
+        final numberOfBundles = applicationBundleSet.size()
+        logger.info "Included $numberOfBundles OSGi bundles in $applicationBundlesFile resource."
+    }
+}

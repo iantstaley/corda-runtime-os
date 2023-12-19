@@ -1,0 +1,25 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+description 'Corda Crypto Custom Digest One'
+
+group 'com.example.crypto'
+
+cordapp {
+    targetPlatformVersion platformVersion.toInteger()
+    workflow {
+        name 'Custom Crypto Digest One CPK'
+        versionId 1
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    cordaProvided 'net.corda:corda-crypto'
+    cordaProvided 'net.corda:corda-crypto-extensions'
+    cordaProvided 'org.slf4j:slf4j-api'
+}

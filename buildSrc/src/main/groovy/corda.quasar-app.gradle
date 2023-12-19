@@ -1,0 +1,128 @@
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import javax.inject.Inject
+
+plugins {
+    id 'corda.common-app'
+}
+
+extensions.create('quasar', QuasarExtension)
+
+quasar {
+    excludePackages = [
+        'co.paralleluniverse**',
+        'com.esotericsoftware.**',
+        'com.fasterxml.jackson.**',
+        'com.github.benmanes.caffeine**',
+        'com.networknt.schema**',
+        'com.typesafe.**',
+        'de.javakaffee.kryoserializers**',
+        'io.micrometer.**',
+        'io.zipkin.**',
+        'javax.**',
+        'kotlin**',
+        'org.apache.**',
+        'org.objectweb.asm',
+        'org.objenesis**',
+        'org.osgi.**'
+    ]
+}
+
+configurations {
+    quasarBundles {
+        canBeConsumed = false
+        visible = false
+    }
+}
+
+dependencies {
+    // OSGi frameworks containing Quasar and Kryo must resolve
+    // the version of ASM as specified in their OSGi metadata.
+    quasarBundles("co.paralleluniverse:quasar-core-osgi:$quasarVersion") {
+        exclude group: 'org.slf4j'
+    }
+
+    implementation "co.paralleluniverse:quasar-core-osgi:$quasarVersion"
+    runtimeOnly files(configurations.quasarBundles)
+    runtimeOnly("co.paralleluniverse:quasar-core-osgi:$quasarVersion:framework-extension") {
+        transitive = false
+    }
+}
+
+osgiRun {
+    frameworkProperties = [
+        'org.osgi.framework.bootdelegation' : 'org.jolokia.jvmagent,org.jolokia.util',
+        'co.paralleluniverse.quasar.suspendableAnnotation': 'net.corda.v5.base.annotations.Suspendable'
+    ]
+
+    frameworkProperties.putAll quasar.cacheDirectory.asFile.map { dir ->
+        [ 'co.paralleluniverse.quasar.cacheDirectory': dir.absolutePath ]
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.cacheLocations.map { locations ->
+        optionalMapOf('co.paralleluniverse.quasar.cacheLocations', locations)
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.excludeLocations.map { locations ->
+        optionalMapOf('co.paralleluniverse.quasar.excludeLocations', locations)
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.excludePackages.map { packages ->
+        optionalMapOf('co.paralleluniverse.quasar.excludePackages', packages)
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.verbose.map {
+        [ 'co.paralleluniverse.quasar.verbose': it.toString() ]
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.debug.map {
+        [ 'co.paralleluniverse.quasar.debug': it.toString() ]
+    }.orElse([:])
+
+    frameworkProperties.putAll quasar.check.map {
+        [ 'co.paralleluniverse.quasar.check': it.toString() ]
+    }.orElse([:])
+
+    // Required by Quasar, Kryo and Kryo serializers.
+    // Discovered using:
+    //     $ java --illegal-access=warn -jar <application.jar>
+    addOpensAttribute.addAll \
+        'java.base/java.lang',\
+        'java.base/java.lang.invoke',\
+        'java.base/java.nio',\
+        'java.base/java.time',\
+        'java.base/java.time.chrono',\
+        'java.base/java.time.zone',\
+        'java.base/java.util'
+}
+
+@CompileStatic
+@PackageScope
+static Map<String, ?> optionalMapOf(String key, Iterable<String> values) {
+    values ? [ (key): values.join(',') ] : [:]
+}
+
+@CompileStatic
+@PackageScope
+class QuasarExtension {
+    final DirectoryProperty cacheDirectory
+
+    final SetProperty<String> cacheLocations
+    final SetProperty<String> excludePackages
+    final SetProperty<String> excludeLocations
+
+    final Property<Boolean> verbose
+    final Property<Boolean> debug
+    final Property<Boolean> check
+
+    @Inject
+    QuasarExtension(ObjectFactory objects) {
+        cacheDirectory = objects.directoryProperty()
+        cacheLocations = objects.setProperty(String)
+        excludeLocations = objects.setProperty(String)
+        excludePackages = objects.setProperty(String)
+        verbose = objects.property(Boolean)
+        debug = objects.property(Boolean)
+        check = objects.property(Boolean)
+    }
+}

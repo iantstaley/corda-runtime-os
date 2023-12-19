@@ -1,0 +1,21 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+cordapp {
+    targetPlatformVersion platformVersion.toInteger()
+    minimumPlatformVersion platformVersion.toInteger()
+    contract {
+        name 'Ledger Testing Data-Model'
+        versionId 1
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'net.corda:corda-base'
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    cordaProvided 'javax.persistence:javax.persistence-api'
+}

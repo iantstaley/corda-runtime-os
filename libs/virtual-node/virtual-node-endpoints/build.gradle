@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Endpoint API for management of virtual nodes.'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    api project(':libs:rest:rest')
+
+    api project(":libs:virtual-node:cpi-upload-endpoints")
+    implementation project(":libs:external-messaging")
+    implementation project(":libs:virtual-node:virtual-node-info")
+    implementation project(":libs:rest:rest")
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-avro-schema'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+}

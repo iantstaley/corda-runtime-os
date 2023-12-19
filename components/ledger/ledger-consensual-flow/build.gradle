@@ -1,0 +1,73 @@
+import aQute.bnd.gradle.Bundle
+
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.osgi-test-conventions'
+    id 'corda.common-library'
+}
+
+description 'Corda consensual ledger - flow implementation'
+
+ext.cordaEnableFormatting = true
+
+configurations {
+    cpis {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'net.corda:corda-ledger-consensual'
+    implementation 'net.corda:corda-topic-schema'
+    implementation project(':components:ledger:ledger-common-flow-api')
+    implementation project(':components:ledger:ledger-common-flow')
+    implementation project(':libs:crypto:cipher-suite')
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:flows:flow-api')
+    implementation project(':libs:ledger:ledger-consensual-data')
+    implementation project(':libs:ledger:ledger-common-data')
+    implementation project(":libs:serialization:json-validator")
+    implementation project(':libs:serialization:serialization-checkpoint-api')
+    implementation project(':libs:serialization:serialization-internal')
+    implementation project(':libs:utilities')
+    implementation project(':libs:virtual-node:sandbox-group-context')
+
+    testImplementation project(':testing:ledger:ledger-consensual-base-test')
+    testImplementation project(':testing:kryo-serialization-testkit')
+    testImplementation project(':libs:serialization:serialization-amqp')
+    testImplementation project(':libs:serialization:serialization-kryo')
+    testImplementation project(':testing:test-serialization')
+
+    integrationTestImplementation project(':testing:group-policy-test-common')
+
+    runtimeOnly project(":libs:web:web-impl")
+
+    integrationTestRuntimeOnly "org.apache.aries.spifly:org.apache.aries.spifly.dynamic.framework.extension:$ariesDynamicFrameworkExtensionVersion"
+    integrationTestRuntimeOnly project(':libs:messaging:db-message-bus-impl')
+    integrationTestRuntimeOnly project(':libs:messaging:messaging-impl')
+    integrationTestRuntimeOnly project(':libs:lifecycle:lifecycle-impl')
+    integrationTestRuntimeOnly project(':libs:flows:session-manager-impl')
+    integrationTestRuntimeOnly project(':libs:state-manager:state-manager-db-impl')
+    cpis project(path: ':testing:ledger:ledger-consensual-state-app', configuration: 'cordaCPB')
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--add-opens', 'java.base/java.lang.invoke=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+}
+
+//  Copy the cpi builds declared in the cpis configuration into our resources so we find and load them
+def integrationTestResources = tasks.named('processIntegrationTestResources', ProcessResources) {
+    from(configurations.cpis) {
+        into 'META-INF'
+        rename "(.*)-\\Q${version}\\E-package.cpb", "\$1.cpb"
+    }
+}
+
+tasks.named('testingBundle', Bundle) {
+    dependsOn integrationTestResources
+}

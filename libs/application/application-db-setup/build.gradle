@@ -1,0 +1,54 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+description 'Application DB Setup'
+
+
+dependencies {
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-base'
+    implementation 'net.corda:corda-db-schema'
+    implementation 'net.corda:corda-config-schema'
+    implementation "net.corda:corda-topic-schema"
+
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:configuration:configuration-datamodel')
+    implementation project(":libs:crypto:crypto-config-impl")
+    implementation project(":libs:crypto:crypto-core")
+    implementation project(':libs:db:db-admin')
+    implementation project(':libs:db:db-admin-impl')
+    implementation project(':libs:db:db-core')
+    implementation project(':libs:permissions:permission-datamodel')
+    implementation project(':libs:permissions:permission-password')
+    implementation project(':libs:messaging:db-message-bus-datamodel')
+    implementation project(':libs:utilities')
+}
+
+// NOTE:  supported jdbc drivers / database drivers are listed here.
+// Add more packages here.
+//
+// We want to use resolution=optional rather than DynamicImport-Package
+//
+// resolution=optional means that runtime resolution doesn't "fail" when
+// the framework cannot initially find any drivers.
+//
+// We also have to disable Class.forName scanning that bnd does otherwise
+// it finds (postgres) db usage and declares it as Import-Package
+// without `resolution=optional` which then fails to resolve at runtime.
+// https://bnd.bndtools.org/instructions/noclassforname.html
+tasks.named('jar', Jar) {
+    bundle {
+        bnd '''\
+-noclassforname: true
+Import-Package: org.postgresql;resolution:=optional,\
+    *
+'''
+    }
+}

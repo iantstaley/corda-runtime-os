@@ -1,0 +1,94 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+configurations {
+    cpis {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+description 'Chunk database writer impl'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'javax.persistence:javax.persistence-api'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-base'
+    implementation "net.corda:corda-avro-schema"
+    implementation 'net.corda:corda-config-schema'
+    implementation 'net.corda:corda-db-schema'
+    implementation 'net.corda:corda-topic-schema'
+
+    implementation project(':libs:chunking:chunking-datamodel')
+    implementation project(':libs:chunking:chunking-core')
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:db:db-core')
+    implementation project(':libs:db:db-orm')
+    implementation project(':libs:db:db-admin')
+    implementation project(':libs:configuration:configuration-validation')
+
+    implementation project(':libs:lifecycle:lifecycle')
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:virtual-node:cpi-datamodel")
+    implementation project(':libs:virtual-node:cpi-upload-manager')
+    implementation project(":libs:packaging:packaging")
+    implementation project(":libs:packaging:packaging-core")
+    implementation project(":libs:packaging:packaging-verify")
+    implementation project(":libs:utilities")
+    implementation project(':libs:membership:certificates-common')
+    implementation project(':libs:membership:network-info')
+    implementation project(':components:chunking:chunk-db-write')
+    implementation project(':components:membership:certificates-service')
+    integrationTestImplementation project(":libs:serialization:serialization-avro")
+
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":components:reconciliation:reconciliation")
+    implementation project(":libs:membership:membership-common")
+    implementation project(":libs:membership:schema-validation")
+    implementation project(':components:membership:group-policy-configuration-validation')
+
+    testImplementation project(':libs:db:db-admin')
+    testImplementation project(':libs:db:db-admin-impl')
+    testImplementation project(':libs:db:db-orm-impl')
+    testImplementation project(':testing:db-testkit')
+    testImplementation project(":testing:packaging-test-utilities")
+    testImplementation project(':testing:test-utilities')
+
+    integrationTestImplementation project(':libs:platform-info')
+
+    testImplementation "com.google.jimfs:jimfs:$jimfsVersion"
+
+    testRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    testRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+
+    cpis project(path: ':testing:cpbs:extendable-cpb', configuration: 'cordaCPB')
+}
+
+def testResources = tasks.named('processTestResources', ProcessResources) {
+    from(configurations.cpis) {
+        rename "(.*)-\\Q${version}\\E-package.cpb", "\$1.cpb"
+        into 'META-INF'
+    }
+}
+
+tasks.named('test', Test) {
+    dependsOn testResources
+}
+
+tasks.named('jar', Jar) {
+    bundle {
+        bnd '''\
+DynamicImport-Package: org.hibernate.proxy
+'''
+    }
+}

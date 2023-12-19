@@ -1,0 +1,30 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'biz.aQute.bnd.builder'
+}
+
+description 'Corda Kotlin Heap Fix'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.slf4j:slf4j-api'
+}
+
+processResources {
+    filesMatching('**/configuration.properties') {
+        expand([ 'kotlinVersion': libs.versions.kotlinVersion.get() ])
+    }
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'corda-kotlin-heap-fix'
+    bundle {
+        bnd """\
+Bundle-Name: \${project.description}
+Bundle-SymbolicName: \${project.group}.kotlin-heap-fix
+Fragment-Host: org.jetbrains.kotlin.osgi-bundle
+"""
+    }
+}

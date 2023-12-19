@@ -1,0 +1,16 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Endpoint API for uploading a CPI actions.'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    api project(':libs:rest:rest')
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-avro-schema'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+}

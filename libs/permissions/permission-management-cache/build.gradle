@@ -1,0 +1,20 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Definition of the Permission Management Cache.'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    api "net.corda:corda-avro-schema"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    api project(":libs:lifecycle:lifecycle")
+    api project(":libs:permissions:permission-cache-common")
+}

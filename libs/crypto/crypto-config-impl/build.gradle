@@ -1,0 +1,22 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Crypto configuration implementation'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    implementation "net.corda:corda-config-schema"
+
+    api project(":libs:configuration:configuration-core")
+    implementation project(':libs:crypto:cipher-suite')
+    implementation project(":libs:crypto:crypto-core")
+
+    testImplementation project(':libs:configuration:configuration-validation')
+}

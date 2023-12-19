@@ -1,0 +1,51 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Database Message Bus Implementation'
+
+dependencies {
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-config-schema"
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-db-schema'
+
+    api "javax.persistence:javax.persistence-api"
+
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+    implementation project(":libs:application:application-db-setup")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(":libs:configuration:configuration-merger")
+    implementation project(':libs:db:db-admin')
+    implementation project(':libs:db:db-core')
+    implementation project(':libs:db:db-orm')
+    implementation project(":libs:messaging:db-message-bus-datamodel")
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:messaging:message-bus")
+    implementation project(":libs:schema-registry:schema-registry")
+    implementation project(':libs:utilities')
+    implementation project(":libs:serialization:serialization-avro")
+
+    runtimeOnly project(':libs:db:db-orm-impl')
+    runtimeOnly project(':libs:schema-registry:schema-registry-impl')
+    runtimeOnly "com.sun.activation:javax.activation:$activationVersion"
+
+    testImplementation project(":testing:test-utilities")
+
+    testRuntimeOnly 'org.osgi:osgi.core'
+
+    integrationTestImplementation project(":libs:db:db-admin-impl")
+    integrationTestImplementation project(":libs:db:db-orm-impl")
+    integrationTestImplementation project(":libs:utilities")
+    integrationTestImplementation project(":testing:db-testkit")
+
+    integrationTestRuntimeOnly "com.sun.activation:javax.activation:$activationVersion"
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    integrationTestRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+    integrationTestRuntimeOnly "org.slf4j:slf4j-simple:$slf4jVersion"
+}

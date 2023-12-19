@@ -1,0 +1,41 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Database ORM Implementation'
+
+dependencies {
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-base"
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    implementation "org.slf4j:slf4j-api"
+    api "javax.persistence:javax.persistence-api"
+
+    runtimeOnly("org.hibernate:hibernate-core:$hibernateVersion")
+    // TODO - statistics integration isn't working in OSGi.
+    // https://r3-cev.atlassian.net/browse/CORE-7168
+    //
+    // runtimeOnly("org.hibernate:hibernate-micrometer:$hibernateVersion") {
+    //  // TODO - this can probably be removed once we have a table version of micrometer with OSGi support.
+    //  exclude group: 'io.micrometer', module: 'micrometer-core'
+    // }
+    implementation("org.hibernate:hibernate-osgi:$hibernateVersion") {
+        // Need to exclude the org.osgi package as will use the BND ones at runtime
+        //  org.osgi ones are added above as compileOnly
+        exclude group: 'org.osgi'
+    }
+    runtimeOnly project(':libs:antlr')
+    runtimeOnly "com.sun.activation:javax.activation:$activationVersion"
+
+    implementation project(":libs:db:db-core")
+    implementation project(":libs:db:db-orm")
+    implementation project(":libs:utilities")
+
+
+    testRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+
+    integrationTestImplementation project(":testing:db-testkit")
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+}

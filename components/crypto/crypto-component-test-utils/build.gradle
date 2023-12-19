@@ -1,0 +1,29 @@
+plugins {
+    id 'corda.common-library'
+}
+
+description 'Crypto components common test utils, for use only by crypto library'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    implementation "net.corda:corda-config-schema"
+
+    implementation project(":components:configuration:configuration-read-service")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(':libs:crypto:cipher-suite')
+    implementation project(":libs:messaging:messaging")
+
+    api project(":libs:lifecycle:lifecycle-impl")
+    api project(":libs:lifecycle:lifecycle-test-impl")
+    api project(":libs:lifecycle:registry")
+    api project(":testing:test-utilities")
+
+    api libs.assertj.core
+    api libs.mockito.kotlin
+}
+

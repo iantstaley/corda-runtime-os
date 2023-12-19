@@ -1,0 +1,21 @@
+plugins {
+    id 'corda.common-library'
+}
+
+// This isn't really an application. It is just
+// a bundle used to test our OSGi bootstrapper.
+
+description 'Test Application'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-base'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    compileOnly 'org.slf4j:slf4j-api'
+    compileOnly project(':osgi-framework-api')
+}

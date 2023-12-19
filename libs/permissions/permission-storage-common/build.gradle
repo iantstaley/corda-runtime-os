@@ -1,0 +1,20 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Common Permission Storage Utilities'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema"
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:db:db-core')
+    implementation project(':libs:db:db-orm')
+    implementation project(':libs:permissions:permission-datamodel')
+}

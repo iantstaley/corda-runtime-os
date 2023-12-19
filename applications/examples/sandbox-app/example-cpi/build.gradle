@@ -1,0 +1,29 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+description 'Corda Example CPI'
+
+group 'com.example.vnode'
+version = '1.0-SNAPSHOT'
+
+cordapp {
+    targetPlatformVersion platformVersion.toInteger()
+    workflow {
+        name 'Corda Example CPK'
+        versionId 1
+        licence 'Test-Licence'
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    cordaProvided 'net.corda:corda-application'
+    cordaProvided 'net.corda:corda-crypto-extensions'
+    cordaProvided 'org.slf4j:slf4j-api'
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+}

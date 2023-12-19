@@ -1,0 +1,130 @@
+import aQute.bnd.gradle.Bundle
+import aQute.bnd.gradle.Resolve
+import aQute.bnd.gradle.TestOSGi
+import com.gradle.enterprise.gradleplugin.test.ImportJUnitXmlReports
+import static com.gradle.enterprise.gradleplugin.test.JUnitXmlDialect.GENERIC
+
+plugins {
+    id 'corda.common-publishing'
+    id 'biz.aQute.bnd.builder'
+}
+
+description "Bare bones Kotlin reflection within an OSGi framework."
+
+pluginManager.withPlugin('maven-publish') {
+    publishing {
+        publications.configureEach {
+            pom {
+                // Include attribution for kotlinx-metadata-jvm library.
+                developers {
+                    developer {
+                        name = 'Kotlin Team'
+                        organization = 'JetBrains'
+                        organizationUrl = 'https://www.jetbrains.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+configurations {
+    bundle {
+        canBeDeclared = false
+        canBeResolved = false
+    }
+    bundle.extendsFrom runtimeClasspath
+}
+
+dependencies {
+    api 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly "org.jetbrains.kotlinx:kotlinx-metadata-jvm:$kotlinMetadataVersion"
+    compileOnly "org.ow2.asm:asm:$asmVersion"
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    testCompileOnly 'org.jetbrains:annotations'
+    testImplementation libs.assertj.core
+    testImplementation libs.junit.params
+    testRuntimeOnly libs.junit.engine
+    testRuntimeOnly "org.jetbrains.kotlinx:kotlinx-metadata-jvm:$kotlinMetadataVersion"
+    testRuntimeOnly "org.ow2.asm:asm:$asmVersion"
+
+    integrationTestImplementation project(':libs:kotlin-reflection:kotlin-reflection-test-example')
+    integrationTestImplementation 'org.slf4j:slf4j-api'
+    integrationTestImplementation "org.apache.felix:org.apache.felix.framework:$felixVersion"
+    integrationTestImplementation libs.junit
+    integrationTestRuntimeOnly libs.junit.engine
+    integrationTestRuntimeOnly libs.junit.platform
+    integrationTestRuntimeOnly "org.slf4j:slf4j-simple:$slf4jVersion"
+}
+
+def jar = tasks.named('jar', Jar) {
+    archiveBaseName = 'corda-kotlin-reflection'
+    bundle {
+        bnd """\
+Bundle-Name: Corda Kotlin Reflection
+Bundle-SymbolicName: \${project.group}.kotlin-reflection
+Sealed: true
+-includeresource: @kotlinx-metadata-jvm-${kotlinMetadataVersion}.jar
+-conditionalpackage: org.objectweb.asm
+"""
+    }
+}
+
+def testingBundle = tasks.register('testingBundle', Bundle) {
+    archiveClassifier = 'tests'
+    from sourceSets.integrationTest.output
+    bundle {
+        sourceSet = sourceSets.integrationTest
+        classpath = sourceSets.integrationTest.compileClasspath
+        bnd '''\
+Test-Cases: \${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
+Sealed: true
+'''
+    }
+}
+
+def resolve = tasks.register('resolve', Resolve) {
+    dependsOn jar, testingBundle
+    bundles = files(
+        sourceSets.integrationTest.runtimeClasspath,
+        configurations.archives.artifacts.files,
+        testingBundle
+    )
+    bndrun = file('test.bndrun')
+    outputBndrun = layout.buildDirectory.file('resolved-test.bndrun')
+    doFirst {
+        //  bnd attempts to use ~/ for caching if this is unavailable the build will fail.
+        System.setProperty('bnd.home.dir', "$rootDir/bnd")
+    }
+}
+
+def testOSGi = tasks.register('testOSGi', TestOSGi) {
+    resultsDirectory = file("$testResultsDir/integrationTest")
+    bundles = files(
+        sourceSets.integrationTest.runtimeClasspath,
+        configurations.archives.artifacts.files,
+        testingBundle
+    )
+    bndrun = resolve.flatMap { it.outputBndrun }
+}
+
+// Gradle enterprise does not pick up OSGI tests by default as they they are of type TestOSGi rather than standard
+tasks.register('importOSGiJUnitXml', ImportJUnitXmlReports) {
+    dependsOn testOSGi
+    dialect = GENERIC
+    reports.from(fileTree("$testResultsDir/integrationTest").matching {
+        include '**/TEST-*.xml'
+    })
+}
+
+tasks.named('integrationTest') {
+    dependsOn testOSGi
+    enabled = false
+}
+
+artifacts {
+    bundle jar
+}

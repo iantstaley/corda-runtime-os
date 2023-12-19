@@ -1,0 +1,41 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Kafka Message Bus Impl'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.core'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:messaging:message-bus")
+    implementation project(":libs:schema-registry:schema-registry")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(":libs:configuration:configuration-merger")
+    implementation project(":libs:metrics")
+    implementation project(":libs:tracing")
+    implementation project(":libs:utilities")
+    api project(":libs:serialization:serialization-avro")
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-config-schema"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation "org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:$kafkaClientVersion"
+    constraints {
+        implementation("org.xerial.snappy:snappy-java:$xerialSnappyVersion") {
+            because 'Kafka Client uses an older version of Snappy library which is exposed to CVE-2023-34455. ' +
+                    'This might be resolved in the future versions of Kafka Client.'
+        }
+    }
+
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+
+    testImplementation project(":testing:test-utilities")
+
+    testRuntimeOnly 'org.osgi:osgi.core'
+    testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+}

@@ -1,0 +1,24 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'P2P cryptographic library for session authentication'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-crypto"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation project(":libs:crypto:crypto-utils")
+    implementation project(":libs:utilities")
+
+    api libs.bundles.bouncycastle
+
+    testImplementation project(':libs:crypto:cipher-suite')
+
+    integrationTestImplementation project(":testing:p2p:certificates")
+}

@@ -1,0 +1,36 @@
+plugins {
+    id 'distribution'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'corda.cli-plugin-packager'
+}
+
+ext {
+    releasable = false
+}
+
+ext.cordaEnableFormatting = true
+
+group 'net.corda.cli.deployment'
+
+dependencies {
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    compileOnly "net.corda.cli.host:api:$pluginHostVersion"
+    compileOnly "org.pf4j:pf4j:$pf4jVersion"
+    kapt "org.pf4j:pf4j:$pf4jVersion"
+    kapt "info.picocli:picocli:$picocliVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-rbac-schema'
+
+    implementation project(":tools:plugins:plugins-rest")
+    implementation project(':libs:permissions:permission-endpoint')
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib'
+}
+
+cliPlugin {
+    cliPluginClass = 'net.corda.cli.plugin.initialRbac.InitialRbacPlugin'
+    cliPluginDescription = 'A CLI plug-in to create common RBAC roles'
+}

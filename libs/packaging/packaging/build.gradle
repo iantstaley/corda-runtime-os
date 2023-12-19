@@ -1,0 +1,80 @@
+import aQute.bnd.version.MavenVersion
+
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Corda Packaging'
+
+allprojects {
+    ext {
+        contractSymbolicName = 'com.r3.corda.packaging.test.contract'
+        workflowSymbolicName = 'com.r3.corda.packaging.test.workflow'
+    }
+}
+
+configurations {
+    contractCPK {
+        canBeConsumed = false
+    }
+    workflowCPK {
+        canBeConsumed = false
+    }
+    workflow {
+        canBeConsumed = false
+        transitive = false
+    }
+    workflowLibs {
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    api platform("net.corda:corda-api:$cordaApiVersion")
+
+    api 'net.corda:corda-base'
+    api 'net.corda:corda-crypto'
+    api 'net.corda:corda-crypto-extensions'
+    api 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:utilities')
+    implementation project(":libs:packaging:packaging-core")
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+
+    testImplementation 'org.osgi:osgi.core'
+    testImplementation project(':libs:crypto:cipher-suite')
+    testImplementation project(":testing:test-utilities")
+    testImplementation project(":testing:packaging-test-utilities")
+
+    // TODO:  We're pulling in some code (flows) from corda5 dev preview to build test cpks for our tests.
+    // TODO:  This should be re-visited when more of the cordapp APIs are imported into this repo.
+    workflow project('test:workflow-cpk')
+    workflowLibs project(path: 'test:workflow-cpk', configuration: 'libFolderDependencies')
+    contractCPK project(path: 'test:contract-cpk', configuration: 'cordaCPK')
+    workflowCPK project(path: 'test:workflow-cpk', configuration: 'cordaCPK')
+}
+
+tasks.named('test', Test) {
+    inputs.files(
+        configurations.contractCPK,
+        configurations.workflowCPK,
+        configurations.workflowLibs,
+        configurations.workflow
+    ).withPropertyName("CPK_CONFIG").withPathSensitivity(PathSensitivity.RELATIVE)
+
+    doFirst {
+        systemProperties([
+            'com.r3.corda.packaging.test.workflow.libs' : configurations.workflowLibs.collect { it.toURI() }.join(' '),
+            'com.r3.corda.packaging.test.contract.cpk' : configurations.contractCPK.singleFile.toURI(),
+            'com.r3.corda.packaging.test.workflow.cpk' : configurations.workflowCPK.singleFile.toURI(),
+            'com.r3.corda.packaging.test.contract.bundle.symbolic.name': contractSymbolicName,
+            'com.r3.corda.packaging.test.contract.bundle.version' : MavenVersion.parseMavenString(version.toString()).OSGiVersion,
+            'com.r3.corda.packaging.test.workflow.cordapp' : configurations.workflow.singleFile.toURI()
+        ])
+    }
+}

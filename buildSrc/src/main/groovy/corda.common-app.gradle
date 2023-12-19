@@ -1,0 +1,559 @@
+import aQute.bnd.gradle.Resolve
+import groovy.transform.CompileStatic
+import java.nio.file.Files
+import java.util.jar.Attributes
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import javax.inject.Inject
+import org.apache.logging.log4j.core.config.plugins.processor.PluginCache;
+
+import static java.util.stream.Collectors.toSet
+import static org.osgi.framework.Constants.BUNDLE_MANIFESTVERSION
+import static org.osgi.framework.Constants.EXPORT_PACKAGE
+import static CreateApplicationBundlesFile.isBundle
+import static CreateApplicationBundlesFile.isJar
+
+plugins {
+    id 'corda.common-library'
+}
+
+def applyDependencySubstitution = { Configuration conf ->
+    conf.resolutionStrategy.dependencySubstitution {
+        //Replace Kotlin stdlib
+        substitute module('org.jetbrains.kotlin:kotlin-stdlib-jdk8') using module("org.jetbrains.kotlin:kotlin-osgi-bundle:${libs.versions.kotlinVersion.get()}")
+        substitute module('org.jetbrains.kotlin:kotlin-stdlib-jdk7') using module("org.jetbrains.kotlin:kotlin-osgi-bundle:${libs.versions.kotlinVersion.get()}")
+        substitute module('org.jetbrains.kotlin:kotlin-stdlib-common') using module("org.jetbrains.kotlin:kotlin-osgi-bundle:${libs.versions.kotlinVersion.get()}")
+        substitute module('org.jetbrains.kotlin:kotlin-stdlib') using module("org.jetbrains.kotlin:kotlin-osgi-bundle:${libs.versions.kotlinVersion.get()}")
+        substitute module('org.jetbrains.kotlin:kotlin-reflect') using module("org.jetbrains.kotlin:kotlin-osgi-bundle:${libs.versions.kotlinVersion.get()}")
+    }
+}
+
+configurations {
+    systemPackages {
+        transitive = false
+        canBeConsumed = false
+    }
+    bootstrapClasspath {
+        transitive = true
+        canBeConsumed = false
+        extendsFrom(systemPackages)
+        // This is to ensure that, when you add a project dependency to the configuration, you add the project's jar artifact,
+        // otherwise Gradle adds the project's classes directory as that is usually enough to compile/run
+        attributes { attrs ->
+            attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+    }
+    compileOnly {
+        extendsFrom(systemPackages)
+    }
+    runtimeClasspath {
+        // This is to ensure that, when you add a project dependency to the configuration, you add the project's jar artifact,
+        // otherwise Gradle adds the project's classes directory as that is usually enough to compile/run
+        attributes { attrs ->
+            attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+
+        // Remove unwanted transitive dependency from jackson-core-2.15.0
+        exclude group: 'ch.randelshofer', module: 'fastdoubleparser'
+    }
+    applyDependencySubstitution(systemPackages)
+    applyDependencySubstitution(bootstrapClasspath)
+    applyDependencySubstitution(runtimeClasspath)
+
+    compileClassPath.shouldResolveConsistentlyWith(runtimeClasspath)
+    systemPackages.shouldResolveConsistentlyWith(runtimeClasspath)
+    bootstrapClasspath.shouldResolveConsistentlyWith(runtimeClasspath)
+
+    app {
+        canBeResolved = false
+    }
+}
+
+dependencies {
+    bootstrapClasspath(project(':osgi-framework-bootstrap')) {
+        // Remove unwanted transitive dependency from jackson-core-2.15.0
+        exclude group: 'ch.randelshofer', module: 'fastdoubleparser'
+    }
+
+    systemPackages "org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:$jbossTransactionApiSpecVersion"
+    systemPackages "org.slf4j:slf4j-api:$slf4jVersion"
+    systemPackages project(':osgi-framework-api')
+}
+
+TaskProvider<Jar> jarTask = tasks.named('jar', Jar) {
+    archiveClassifier = 'ignore'
+}
+
+@CompileStatic
+private def addSystemPackagesExtra(
+        final ArtifactCollection artifacts,
+        final Set<String> systemBundleExtraSet
+) {
+    artifacts.each { resolvedArtifact ->
+        final File file = resolvedArtifact.file
+        if (isJar(file)) {
+            new JarFile(
+                    resolvedArtifact.file,
+                    true, JarFile.OPEN_READ,
+                    JarFile.runtimeVersion()
+            ).withCloseable { jarFile ->
+                Attributes mainAttributes = jarFile.manifest.mainAttributes
+                if (isBundle(mainAttributes)) {
+                    mainAttributes.getValue(EXPORT_PACKAGE)?.with { exportPackage ->
+                        aQute.bnd.header.OSGiHeader.parseHeader(exportPackage).entrySet().each { exportEntry ->
+                            final def export = exportEntry.key + ";" + exportEntry.value.toString()
+                            systemBundleExtraSet.add(export)
+                            logger.info "OSGI $export included as system package extra."
+                        }
+                    }
+                } else {
+                    jarFile.versionedStream().filter { JarEntry jarEntry ->
+                        jarEntry.name.endsWith(".class")
+                    }.each { JarEntry jarEntry ->
+                        String entryName = jarEntry.name
+                        int end = entryName.lastIndexOf('/')
+                        if (end > 0) {
+                            final String export = entryName.substring(0, end).replace('/', '.')
+                            systemBundleExtraSet.add(export)
+                            logger.info "OSGI $export included as system package extra."
+                        }
+                    }
+                }
+            }
+        }
+    }
+    final jdkExtraPackages = [
+            "net.corda.osgi.framework.api",
+            "sun.net.www.protocol.jar",
+            "sun.nio.ch",
+            "sun.security.x509",
+            "sun.security.ssl",
+            "javax.servlet",
+            "javax.transaction;version=1.2.0",
+            "javax.xml.stream;version=1.0",
+            "javax.xml.stream.events;version=1.0",
+            "javax.xml.stream.util;version=1.0"
+    ]
+    jdkExtraPackages.each { export -> systemBundleExtraSet.add(export) }
+}
+
+@CompileStatic
+@UntrackedTask(because = 'We must always calculate application bundles.')
+class DefineApplicationBundles extends DefaultTask {
+    private final ConfigurableFileCollection includeBundles
+    private final ConfigurableFileCollection excludeBundles
+    private final ConfigurableFileCollection applicationBundles
+
+    @Inject
+    DefineApplicationBundles(ObjectFactory objects) {
+        includeBundles = objects.fileCollection()
+        excludeBundles = objects.fileCollection()
+        applicationBundles = objects.fileCollection()
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    ConfigurableFileCollection getIncludeBundles() {
+        return includeBundles
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    ConfigurableFileCollection getExcludeBundles() {
+        return excludeBundles
+    }
+
+    @OutputFiles
+    FileCollection getApplicationBundles() {
+        return applicationBundles
+    }
+
+    @TaskAction
+    void run() {
+        applicationBundles.setFrom(includeBundles - excludeBundles)
+    }
+}
+
+@CompileStatic
+class CreateApplicationBundlesFile extends DefaultTask {
+    private final ConfigurableFileCollection applicationBundles
+    private final RegularFileProperty applicationBundleFile
+
+    @Inject
+    CreateApplicationBundlesFile(ObjectFactory objects) {
+        applicationBundles = objects.fileCollection()
+        applicationBundleFile = objects.fileProperty()
+            .fileValue(new File(temporaryDir, 'application_bundles'))
+        applicationBundleFile.disallowChanges()
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    ConfigurableFileCollection getApplicationBundles() {
+        return applicationBundles
+    }
+
+    @OutputFile
+    RegularFileProperty getApplicationBundleFile() {
+        return applicationBundleFile
+    }
+
+    @TaskAction
+    void run() {
+        applicationBundleFile.getAsFile().get().withWriter { writer ->
+            applicationBundles.forEach { file ->
+                if (isJar(file) && isBundle(new JarFile(file))) {
+                    writer.writeLine("bundles/${file.name}")
+                }
+            }
+        }
+    }
+
+    static boolean isBundle(final JarFile jarFile) {
+        return isBundle(jarFile.manifest.mainAttributes)
+    }
+
+    static boolean isBundle(final Attributes mainAttributes) {
+        return mainAttributes.getValue(BUNDLE_MANIFESTVERSION) != null
+    }
+
+    static boolean isJar(final File file) {
+        return file.name.endsWith('.jar')
+    }
+}
+
+def defineApplicationBundles = tasks.register('defineApplicationBundles', DefineApplicationBundles) {
+    includeBundles.from jarTask, configurations.runtimeClasspath
+    excludeBundles.from configurations.systemPackages
+}
+
+def createApplicationBundlesFile = tasks.register('createApplicationBundlesFile', CreateApplicationBundlesFile) {
+    applicationBundles.from defineApplicationBundles.map { it.applicationBundles }
+}
+
+def cordaAssembleSystemPackagesExtraTask = tasks.register("createSystemPackagesExtraFile") {
+    dependsOn configurations.bootstrapClasspath.buildDependencies
+    File systemPackagesExtraFile = new File(temporaryDir, "system_packages_extra")
+    outputs.file(systemPackagesExtraFile)
+    doLast {
+        final Set<String> systemBundleExtraSet = new TreeSet<>()
+        configurations.systemPackages.incoming.each { resolvableDependencies ->
+            addSystemPackagesExtra(resolvableDependencies.artifacts as ArtifactCollection, systemBundleExtraSet)
+        }
+        systemPackagesExtraFile.withWriter { writer ->
+            systemBundleExtraSet.each { export -> writer.writeLine(export) }
+        }
+    }
+}
+
+@CompileStatic
+class AppResolution extends DefaultTask {
+    private final ConfigurableFileCollection systemPropertyFiles
+    private final RegularFileProperty bndrunFile
+
+    @Inject
+    AppResolution(ObjectFactory objects, ProjectLayout layout) {
+        systemPropertyFiles = objects.fileCollection()
+        bndrunFile = objects.fileProperty()
+            .value(layout.buildDirectory.file('resolve.bndrun'))
+        bndrunFile.disallowChanges()
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    ConfigurableFileCollection getSystemPropertyFiles() {
+        return systemPropertyFiles
+    }
+
+    @OutputFile
+    RegularFileProperty getBndrunFile() {
+        return bndrunFile
+    }
+
+    @TaskAction
+    void createBndrun() {
+        def systemProperties = systemPropertyFiles.collect { file ->
+            file.readLines()
+        }.flatten()
+
+        bndrunFile.getAsFile().get().withPrintWriter { writer ->
+            writer.print '''\
+-runee: JavaSE-17
+-runfw: org.apache.felix.framework
+-resolve.effective: resolve,active
+-runrequires:\
+    bnd.identity;id='\${project.group}.\${project.name}',\
+    osgi.service;filter:='(objectClass=net.corda.osgi.api.Application)'
+-runstartlevel: order=sortbynameversion,begin=-1
+'''
+            // Our launcher creates the Shutdown service dynamically, so
+            // declare it as a system capability for the resolver's sake.
+            // The security manager's ConditionalPermissionAdmin must
+            // also be created dynamically, so include that too.
+            writer.print '''\
+-runsystemcapabilities:\
+    osgi.service;objectClass:List<String>='net.corda.osgi.api.Shutdown';effective:=active,\
+    osgi.service;objectClass:List<String>='org.osgi.service.condpermadmin.ConditionalPermissionAdmin';effective:=active
+'''
+            if (!systemProperties.isEmpty()) {
+                writer.print('-runsystempackages:')
+                systemProperties.forEach { sysprop ->
+                    writer.println(' \\')
+                    writer.print("\t$sysprop,")
+                }
+                writer.println()
+            }
+            writer.println('-runbundles:')
+        }
+    }
+}
+
+def appResolution = tasks.register('appResolution', AppResolution) {
+    systemPropertyFiles.from cordaAssembleSystemPackagesExtraTask.map { it.outputs.files }
+}
+
+def verifyApp = tasks.register('verifyApp', Resolve) {
+    bundles.from defineApplicationBundles.map { it.applicationBundles },
+            configurations.bootstrapClasspath
+    bndrun = appResolution.flatMap { it.bndrunFile }
+    writeOnChanges = false
+
+    //  bnd attempts to use ~/ for caching if this is unavailable the build will fail.
+    System.setProperty('bnd.home.dir', "$rootDir/bnd/")
+}
+
+@CompileStatic
+class JavaAgent implements Named {
+    private final String name
+    private final Property<String> className
+    private final Property<String> args
+
+    @Inject
+    JavaAgent(ObjectFactory objects, String name) {
+        this.name = name
+        this.className = objects.property(String)
+        this.args = objects.property(String)
+    }
+
+    @Override
+    @Internal
+    String getName() {
+        return name
+    }
+
+    @Input
+    Property<String> getClassName() {
+        return className
+    }
+
+    @Input
+    Property<String> getArgs() {
+        return args
+    }
+}
+
+@CompileStatic
+class OsgiRun {
+
+    private final NamedDomainObjectContainer<JavaAgent> javaAgents
+    private final MapProperty<String, String> frameworkProperties
+    private final SetProperty<String> addOpensAttribute
+    private final Provider<? extends String> platformVersion
+
+    @Inject
+    OsgiRun(ObjectFactory objects, ProviderFactory providers) {
+        javaAgents = objects.domainObjectContainer(JavaAgent)
+        frameworkProperties = objects.mapProperty(String, String).convention(new HashMap<String,String>())
+        addOpensAttribute = objects.setProperty(String)
+        platformVersion = providers.gradleProperty('platformVersion')
+    }
+
+    void javaAgents(Action<? super NamedDomainObjectContainer<JavaAgent>> action) {
+        action.execute(javaAgents)
+    }
+
+    Provider<? extends String> getPlatformVersion() {
+        return platformVersion
+    }
+
+    NamedDomainObjectContainer<JavaAgent> getJavaAgents() {
+        return javaAgents
+    }
+
+    MapProperty<String, String> getFrameworkProperties() {
+        return frameworkProperties
+    }
+
+    SetProperty<String> getAddOpensAttribute() {
+        return addOpensAttribute
+    }
+}
+
+OsgiRun osgiRun = extensions.create('osgiRun', OsgiRun)
+
+def appJarBaseName = "corda-${project.name}"
+
+@CompileStatic
+class FrameworkPropertyFile extends DefaultTask {
+
+    @OutputFile
+    File getOutputFile() {
+        return new File(temporaryDir, "framework.properties")
+    }
+
+    @Input
+    final MapProperty<String, String> frameworkProperties
+
+    @Inject
+    FrameworkPropertyFile(ObjectFactory objects) {
+        frameworkProperties = objects.mapProperty(String, String)
+    }
+
+    @TaskAction
+    void run() {
+        Files.newBufferedWriter(getOutputFile().toPath()).withCloseable { Writer writer ->
+            Properties properties = new Properties()
+            frameworkProperties.get().forEach {key, value ->
+                properties.put(key, value)
+            }
+            properties.store(writer, null)
+        }
+    }
+}
+
+TaskProvider<FrameworkPropertyFile> writeFrameworkPropertyFile = tasks.register("writeFrameworkPropertyFile", FrameworkPropertyFile) {
+    frameworkProperties = osgiRun.frameworkProperties
+    frameworkProperties.put('net.corda.platform.version', osgiRun.platformVersion)
+}
+
+@CompileStatic
+class JavaAgentFile extends DefaultTask {
+
+    @OutputFile
+    File getOutputFile() {
+        return new File(temporaryDir, "javaAgents.properties")
+    }
+
+    @Nested
+    ListProperty<JavaAgent> javaAgents
+
+    @Inject
+    JavaAgentFile(ObjectFactory objects) {
+        javaAgents = objects.listProperty(JavaAgent)
+    }
+
+    @TaskAction
+    void run() {
+        List<JavaAgent> agents = javaAgents.get()
+        Files.newBufferedWriter(getOutputFile().toPath()).withCloseable { Writer writer ->
+            Properties props = new Properties()
+            agents.forEach { JavaAgent javaAgent ->
+                props.setProperty(javaAgent.className.get(), javaAgent.args.get())
+            }
+            props.store(writer, null)
+        }
+    }
+}
+
+TaskProvider<JavaAgentFile> javaAgentFileTask =  tasks.register("javaAgentFile", JavaAgentFile) {
+    javaAgents = osgiRun.javaAgents
+}
+
+def mergeLog4j2Plugins = tasks.register('mergeLog4j2Plugins') {
+    dependsOn configurations.bootstrapClasspath
+    inputs.files(configurations.bootstrapClasspath.collect { it.isDirectory() ? it : zipTree(it) })
+    def outputDir = layout.buildDirectory.dir('log4j')
+    outputs.dir(outputDir)
+
+    doLast {
+        def inputFiles = inputs.files.getFiles().findAll { it.name == 'Log4j2Plugins.dat' }.collect { it.toURI().toURL() }
+        if (inputFiles) {
+            def combinedCache = new PluginCache()
+            combinedCache.loadCacheFiles(Collections.enumeration(inputFiles))
+            def outputFile = outputDir.get().file('META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat').asFile
+            outputFile.parentFile.mkdirs()
+            try (OutputStream out = new FileOutputStream(outputFile)) {
+                combinedCache.writeCache(out)
+            }
+        }
+    }
+}
+
+def appJar = tasks.register('appJar', Jar) {
+    inputs.files(configurations.bootstrapClasspath).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property('addOpensAttribute', osgiRun.addOpensAttribute)
+    finalizedBy verifyApp
+
+    archiveBaseName = appJarBaseName
+    destinationDirectory = layout.buildDirectory.dir('bin')
+
+    exclude "META-INF/MANIFEST.MF"
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+    exclude "META-INF/*.EC"
+    exclude "META-INF/DEPENDENCIES"
+    exclude "META-INF/LICENSE"
+    exclude "META-INF/NOTICE"
+    exclude "module-info.class"
+    exclude "META-INF/versions/*/module-info.class"
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    manifest {
+        attributes 'Main-Class': 'net.corda.osgi.framework.OSGiFrameworkMain'
+        attributes 'Launcher-Agent-Class': 'net.corda.osgi.framework.JavaAgentLauncher'
+        attributes 'Can-Redefine-Classes': true
+        attributes 'Can-Retransform-Classes': true
+        attributes 'Add-Opens': osgiRun.addOpensAttribute.map { set ->
+            set.stream().map(String::trim).collect(toSet())
+        }.map { it.join(' ') }
+    }
+
+    into("META-INF/") {
+        from(javaAgentFileTask)
+    }
+    from{ configurations.bootstrapClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
+        // Exclude the Log4J2 plugins caches as the merged version is included from mergeLog4J2Plugins
+        eachFile { if (it.name == "Log4j2Plugins.dat") { it.exclude() } }
+    }
+    from(createApplicationBundlesFile.flatMap { it.applicationBundleFile })
+    from(cordaAssembleSystemPackagesExtraTask)
+    from(writeFrameworkPropertyFile)
+    from(mergeLog4j2Plugins)
+    into('bundles') {
+        from(defineApplicationBundles.map { it.applicationBundles }) {
+            eachFile { FileCopyDetails fileCopyDetails ->
+                if (!isJar(new File(fileCopyDetails.sourcePath))) {
+                    fileCopyDetails.exclude()
+                }
+            }
+        }
+    }
+}
+
+artifacts {
+    archives appJar
+    app appJar
+}
+
+pluginManager.withPlugin('maven-publish') {
+    publishing {
+        publications {
+            if (!project.hasProperty('busImpl')) {
+                maven(MavenPublication) {
+                    artifactId appJarBaseName
+                    artifact appJar
+
+                    afterEvaluate { proj ->
+                        groupId proj.group
+                        version proj.version
+
+                        try {
+                            artifact tasks.named('sourcesJar', Jar)
+                        } catch (UnknownTaskException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

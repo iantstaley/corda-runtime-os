@@ -1,0 +1,54 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Uniqueness checker component implementation'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-base'
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-config-schema"
+    implementation "net.corda:corda-ledger-utxo"
+    implementation 'net.corda:corda-topic-schema'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    api project(":components:uniqueness:uniqueness-checker")
+    implementation project(":components:configuration:configuration-read-service")
+    implementation project(":components:uniqueness:backing-store")
+    implementation project(":components:uniqueness:backing-store-impl")
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(':libs:configuration:configuration-datamodel')
+    implementation project(':libs:flows:external-event-responses')
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:metrics")
+    implementation project(':libs:tracing')
+    implementation project(":libs:uniqueness:common")
+    implementation project(":libs:utilities")
+    implementation project(":libs:web:web")
+
+    testImplementation project(":libs:virtual-node:virtual-node-info")
+    testImplementation project(":testing:crypto-testkit")
+    testImplementation project(":testing:test-utilities")
+    testImplementation project(":testing:uniqueness:backing-store-fake")
+    testImplementation project(":testing:uniqueness:uniqueness-utilities")
+
+    integrationTestApi project(":components:db:db-connection-manager")
+    integrationTestImplementation 'net.corda:corda-crypto'
+    integrationTestImplementation 'net.corda:corda-db-schema'
+    integrationTestImplementation project(':components:uniqueness:backing-store-impl').sourceSets.integrationTest.output
+    integrationTestImplementation project(':libs:db:db-admin')
+    integrationTestImplementation project(':libs:db:db-admin-impl')
+    integrationTestImplementation project(':libs:db:db-core')
+    integrationTestImplementation project(':libs:db:db-orm')
+    integrationTestImplementation project(':libs:db:db-orm-impl')
+    integrationTestImplementation project(':libs:lifecycle:lifecycle')
+    integrationTestImplementation project(':testing:db-testkit')
+
+    integrationTestRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    integrationTestRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+}

@@ -1,0 +1,19 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "Sandbox Group Context Interfaces"
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+
+    api project(":libs:packaging:packaging")
+    api project(':libs:sandbox')
+    api project(':libs:sandbox-types')
+    api project(':libs:virtual-node:virtual-node-info')
+
+}

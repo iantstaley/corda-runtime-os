@@ -1,0 +1,28 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Crypto core'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "net.corda:corda-avro-schema"
+    api project(':libs:base-internal')
+    implementation project(':libs:crypto:crypto-utils')
+
+    api project(':libs:crypto:cipher-suite')
+    api "net.corda:corda-crypto"
+    api "net.corda:corda-crypto-extensions"
+
+    testImplementation "javax.persistence:javax.persistence-api"
+    testImplementation "org.hibernate:hibernate-core:$hibernateVersion"
+
+    testImplementation project(":testing:test-utilities")
+}
+
+

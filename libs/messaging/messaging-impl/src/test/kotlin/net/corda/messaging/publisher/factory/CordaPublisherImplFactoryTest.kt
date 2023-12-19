@@ -1,0 +1,48 @@
+package net.corda.messaging.publisher.factory
+
+import com.typesafe.config.ConfigValueFactory
+import net.corda.libs.configuration.SmartConfigImpl
+import net.corda.messagebus.api.producer.CordaProducer
+import net.corda.messagebus.api.producer.builder.CordaProducerBuilder
+import net.corda.messaging.TOPIC_PREFIX
+import net.corda.messaging.api.publisher.config.PublisherConfig
+import net.corda.messaging.publisher.HttpRpcClientImpl
+import net.corda.schema.configuration.BootConfig.INSTANCE_ID
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+
+class CordaPublisherImplFactoryTest {
+    private lateinit var cordaPublisherFactory: CordaPublisherFactory
+    private val publisherConfig = PublisherConfig("clientId")
+
+    private val cordaProducerBuilder: CordaProducerBuilder = mock()
+    private val cordaProducer: CordaProducer = mock()
+
+    @BeforeEach
+    fun beforeEach() {
+        doReturn(cordaProducer).`when`(cordaProducerBuilder).createProducer(any(), any(), anyOrNull())
+        cordaPublisherFactory = CordaPublisherFactory(mock(), cordaProducerBuilder, mock(), mock(), mock())
+    }
+
+    @Test
+    fun testCreatePublisher() {
+        val messagingConfig = SmartConfigImpl.empty()
+            .withValue(INSTANCE_ID, ConfigValueFactory.fromAnyRef(1))
+            .withValue(TOPIC_PREFIX, ConfigValueFactory.fromAnyRef("demo"))
+        val publisher = cordaPublisherFactory.createPublisher(publisherConfig, messagingConfig)
+        assertNotNull(publisher)
+    }
+
+    @Test
+    fun `createHttpRpcClient creates an HttpRpcClientImpl`() {
+        val client = cordaPublisherFactory.createHttpRpcClient()
+
+        assertThat(client).isInstanceOf(HttpRpcClientImpl::class.java)
+    }
+}

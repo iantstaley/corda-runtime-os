@@ -1,0 +1,17 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Member Ops Client'
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:membership:membership-common")
+    implementation project(':libs:virtual-node:virtual-node-info')
+}

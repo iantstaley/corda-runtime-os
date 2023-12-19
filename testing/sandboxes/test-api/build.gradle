@@ -1,0 +1,18 @@
+plugins {
+    id 'corda.common-library'
+}
+
+description 'A test API for use inside sandboxes'
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+}
+
+tasks.named('jar', Jar) {
+    bundle {
+        bnd """\
+Corda-Api: $cordaApiVersion
+"""
+    }
+}

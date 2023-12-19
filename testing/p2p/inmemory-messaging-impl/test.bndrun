@@ -1,0 +1,40 @@
+# Bndrun for Hello World sample
+-tester: biz.aQute.tester.junit-platform
+
+-runee: JavaSE-17
+-runfw: org.apache.felix.framework
+-resolve.effective: resolve,active
+
+-runvm: \
+    --illegal-access=deny
+
+#uncomment to remote debug
+#-runjdb: 5005
+
+-runsystempackages: \
+    javax.xml.stream;version=1.0.0,\
+    javax.xml.stream.events;version=1.0.0,\
+    javax.xml.stream.util;version=1.0.0,\
+    sun.security.x509
+
+-runproperties: \
+    org.osgi.framework.bootdelegation=sun.reflect,\
+    org.slf4j.api.defaultLogLevel=info,\
+    org.slf4j.api.showShortLogName=true,\
+    org.slf4j.api.showThreadName=false,\
+    org.slf4j.api.showDateTime=true,\
+    org.slf4j.api.dateTimeFormat='yyyy-MM-dd HH:mm:ss:SSS Z'
+
+-runrequires: \
+    bnd.identity;id='net.corda.inmemory-messaging-impl',\
+    bnd.identity;id='net.corda.messaging',\
+    bnd.identity;id='junit-jupiter-engine',\
+    bnd.identity;id='junit-platform-launcher',\
+    bnd.identity;id='junit-platform-launcher',\
+    bnd.identity;id='slf4j.simple',\
+    bnd.identity;id='${project.archivesBaseName}-tests'
+
+# This will help us keep -runbundles sorted
+-runstartlevel: \
+    order=sortbynameversion,\
+    begin=-1

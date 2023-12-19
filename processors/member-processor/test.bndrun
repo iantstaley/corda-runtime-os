@@ -1,0 +1,74 @@
+-tester: biz.aQute.tester.junit-platform
+-runfw: org.apache.felix.framework
+-resolve.effective: resolve,active
+-runee: JavaSE-17
+-runtrace: true
+
+#uncomment to remote debug
+# -runjdb: 5005
+
+-runvm: \
+  -DdatabaseHost=${project.databaseHost},\
+  -DdatabasePort=${project.databasePort},\
+  -DdatabaseName=${project.databaseName},\
+  -DdatabaseAdminUser=${project.databaseAdminUser},\
+  -DdatabaseAdminPassword=${project.databaseAdminPassword},\
+  -DdatabaseType=${project.databaseType}
+  --illegal-access=deny
+
+-runsystempackages: \
+    sun.security.x509
+
+-runrequires: \
+    bnd.identity;id='net.corda.member-processor',\
+    bnd.identity;id='net.corda.group-policy',\
+    bnd.identity;id='net.corda.group-policy-impl',\
+    bnd.identity;id='net.corda.group-params-writer-service-impl',\
+    bnd.identity;id='net.corda.merkle-impl',\
+    bnd.identity;id='net.corda.registration-impl',\
+    bnd.identity;id='net.corda.synchronisation-impl',\
+    bnd.identity;id='net.corda.configuration-read-service-impl',\
+    bnd.identity;id='net.corda.cpi-info-read-service-impl',\
+    bnd.identity;id='net.corda.layered-property-map',\
+    bnd.identity;id='net.corda.membership-group-read-impl',\
+    bnd.identity;id='net.corda.membership-impl',\
+    bnd.identity;id='net.corda.membership-service-impl',\
+    bnd.identity;id='net.corda.membership-persistence-client-impl',\
+    bnd.identity;id='net.corda.membership-p2p-impl',\
+    bnd.identity;id='net.corda.members-client-certificate-publisher-service-impl',\
+    bnd.identity;id='net.corda.crypto-processor',\
+    bnd.identity;id='net.corda.crypto-client-hsm-impl',\
+    bnd.identity;id='net.corda.crypto-client-impl',\
+    bnd.identity;id='net.corda.crypto-hes-impl',\
+    bnd.identity;id='net.corda.crypto-persistence-impl',\
+    bnd.identity;id='net.corda.cipher-suite-impl',\
+    bnd.identity;id='net.corda.crypto-service-impl',\
+    bnd.identity;id='net.corda.crypto-softhsm-impl',\
+    bnd.identity;id='net.corda.db-connection-manager-impl',\
+    bnd.identity;id='net.corda.db-orm-impl',\
+    bnd.identity;id='net.corda.external-event-responses-impl',\
+    bnd.identity;id='net.corda.lifecycle-impl',\
+    bnd.identity;id='net.corda.messaging-impl',\
+    bnd.identity;id='net.corda.db-message-bus-impl',\
+    bnd.identity;id='net.corda.db-topic-admin-impl',\
+    bnd.identity;id='net.corda.schema-registry-impl',\
+    bnd.identity;id='${project.archivesBaseName}-tests',\
+    bnd.identity;id='junit-jupiter-engine',\
+    bnd.identity;id='junit-platform-launcher',\
+    bnd.identity;id='slf4j.simple',\
+    bnd.identity;id='net.bytebuddy.byte-buddy',\
+    bnd.identity;id='org.ops4j.pax.jdbc.hsqldb',\
+    bnd.identity;id='org.osgi.service.jdbc',\
+    bnd.identity;id='org.hsqldb.hsqldb',\
+    bnd.identity;id='org.postgresql.jdbc'
+
+-runstartlevel: \
+    order=sortbynameversion,\
+    begin=-1
+
+-runproperties: \
+    org.slf4j.simpleLogger.defaultLogLevel=info,\
+    org.slf4j.simpleLogger.showShortLogName=true,\
+    org.slf4j.simpleLogger.showThreadName=false,\
+    org.slf4j.simpleLogger.showDateTime=true,\
+    org.slf4j.simpleLogger.dateTimeFormat='yyyy-MM-dd HH:mm:ss:SSS Z'

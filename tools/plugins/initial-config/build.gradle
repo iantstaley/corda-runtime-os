@@ -1,0 +1,53 @@
+plugins {
+    id 'distribution'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'corda.cli-plugin-packager'
+}
+
+ext {
+    releasable = false
+}
+
+group 'net.corda.cli.deployment'
+
+dependencies {
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'javax.persistence:javax.persistence-api'
+
+    compileOnly "org.pf4j:pf4j:$pf4jVersion"
+    kapt "org.pf4j:pf4j:$pf4jVersion"
+    kapt "info.picocli:picocli:$picocliVersion"
+
+    implementation 'net.corda:corda-config-schema'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+
+    implementation project(':libs:permissions:permission-common')
+    implementation project(':libs:permissions:permission-datamodel')
+    implementation project(':libs:permissions:permission-password')
+    implementation project(':libs:configuration:configuration-datamodel')
+    implementation project(':libs:configuration:configuration-core')
+    implementation project(":libs:crypto:crypto-config-impl")
+    implementation project(":libs:crypto:crypto-core")
+    implementation project(':libs:db:db-core')
+    compileOnly "net.corda.cli.host:api:$pluginHostVersion"
+
+    testImplementation libs.bundles.test
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    testImplementation "org.pf4j:pf4j:$pf4jVersion"
+    testImplementation "com.github.stefanbirkner:system-lambda:$systemLambdaVersion"
+    testImplementation "net.corda.cli.host:api:$pluginHostVersion"
+}
+
+cliPlugin {
+    cliPluginClass = 'net.corda.cli.plugin.initialconfig.InitialConfigPlugin'
+    cliPluginDescription = 'A CLI plug-in to create SQL files to apply the initial configuration to a cluster'
+}
+
+tasks.named("installDist") {
+    dependsOn cliPlugin
+    def homePath = System.properties['user.home']
+    from cliPlugin
+    into "$homePath/.corda/cli/plugins"
+}

@@ -1,0 +1,28 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description 'Corda ledger UTXO data'
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation 'net.corda:corda-ledger-utxo'
+
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:ledger:ledger-common-data')
+    implementation project(':libs:membership:membership-common')
+    implementation project(':libs:sandbox-types')
+    implementation project(':libs:serialization:serialization-internal')
+    implementation project(':libs:utilities')
+
+    testImplementation project(':testing:ledger:ledger-common-base-test')
+    testImplementation project(':testing:ledger:ledger-utxo-testkit')
+    testImplementation project(':testing:test-serialization')
+}

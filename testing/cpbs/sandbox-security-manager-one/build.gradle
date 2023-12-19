@@ -1,0 +1,33 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+description 'Security Manager One'
+
+group 'com.example.securitymanager'
+
+cordapp {
+    targetPlatformVersion = platformVersion.toInteger()
+    contract {
+        name 'Security Manager One CPK'
+        versionId 1
+        vendor 'R3'
+    }
+}
+
+dependencies {
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion") {
+        // this transitive dependency is not needed as it is shaded in the jackson module, but there is a bug in
+        //  the metadata: https://github.com/FasterXML/jackson-core/issues/999
+        exclude group: "ch.randelshofer"
+    }
+
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    compileOnly "org.osgi:org.osgi.service.component.annotations"
+    cordaProvided 'org.osgi:osgi.core'
+    cordaProvided 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    cordaProvided 'net.corda:corda-application'
+    cordaProvided 'org.slf4j:slf4j-api'
+    cordapp project(':testing:cpbs:sandbox-security-manager-two')
+}

@@ -1,0 +1,29 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+description 'Animal CPB'
+group 'com.r3.corda.testing.animals'
+
+cordapp {
+    targetPlatformVersion platformVersion.toInteger()
+    minimumPlatformVersion platformVersion.toInteger()
+    workflow {
+        name "Animals"
+        versionId 1
+        vendor "R3"
+    }
+}
+
+dependencies {
+    cordaProvided platform("net.corda:corda-api:$cordaApiVersion")
+    cordaProvided 'net.corda:corda-application'
+
+    // javax entities defined in cpks that *will* get picked up by the scanner
+    // and written to (cordapp) manifests
+    cordapp project(':testing:bundles:testing-cats')
+    cordapp project(':testing:bundles:testing-dogs')
+
+    // TODO - add flow CPK here
+}

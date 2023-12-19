@@ -1,0 +1,12 @@
+apiVersion: v2
+name: app-simulator-db
+description: A Helm chart for installing the database used by app-simulator
+
+type: application
+version: 5.0.0
+appVersion: "5.0.0"
+
+dependencies:
+  - name: postgresql
+    version: 11.9.13
+    repository: https://charts.bitnami.com/bitnami

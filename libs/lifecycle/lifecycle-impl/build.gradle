@@ -1,0 +1,23 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "Lifecycle implementation"
+
+dependencies {
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:lifecycle:registry")
+    implementation project(':libs:utilities')
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation "com.google.guava:guava:$guavaVersion"
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation 'net.corda:corda-base'
+    implementation 'org.slf4j:slf4j-api'
+
+    testImplementation project(":testing:test-utilities")
+    testImplementation project(":libs:lifecycle:lifecycle-test-impl")
+}

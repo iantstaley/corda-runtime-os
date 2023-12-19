@@ -1,0 +1,21 @@
+plugins {
+    id 'corda.common-publishing'
+    id 'corda.common-library'
+}
+
+description "Virtual Node Info Interfaces"
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    api project(":libs:packaging:packaging")
+    api "net.corda:corda-avro-schema"
+
+    api project(':libs:crypto:crypto-core')
+    api project(':libs:packaging:packaging-core')
+
+    testImplementation project(':testing:test-utilities')
+}

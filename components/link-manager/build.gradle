@@ -1,0 +1,127 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.osgi-test-conventions'
+    id 'corda.common-publishing'
+}
+
+description 'LinkManager for p2p communication'
+
+configurations {
+    nonOsgiIntegrationTestApi.extendsFrom testApi
+    nonOsgiIntegrationTestCompileOnly.extendsFrom testCompileOnly
+    nonOsgiIntegrationTestImplementation.extendsFrom testImplementation
+    nonOsgiIntegrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+sourceSets {
+    nonOsgiIntegrationTest {
+        kotlin {
+            srcDirs = [ 'src/nonOsgiIntegrationTest/kotlin' ]
+        }
+        resources {
+            srcDirs = [ 'src/nonOsgiIntegrationTest/resources' ]
+        }
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    implementation 'org.jetbrains.kotlin:kotlin-osgi-bundle'
+    implementation project(":libs:p2p-crypto")
+    implementation project(":libs:messaging:messaging")
+    implementation project(":libs:lifecycle:lifecycle")
+    implementation project(":libs:configuration:configuration-core")
+    implementation project(":libs:configuration:configuration-merger")
+    implementation project(":components:configuration:configuration-read-service")
+    implementation project(":libs:configuration:configuration-schema:p2p")
+    implementation project(':components:domino-logic')
+    implementation project(":components:crypto:crypto-client")
+    implementation project(':libs:crypto:cipher-suite')
+    implementation project(":libs:crypto:crypto-utils")
+    implementation project(":components:membership:membership-persistence-client")
+    implementation project(":libs:metrics")
+    implementation project(":libs:tracing")
+
+    runtimeOnly "org.apache.felix:org.apache.felix.scr:$felixScrVersion"
+    runtimeOnly "org.osgi:org.osgi.service.component:$osgiServiceComponentVersion"
+    runtimeOnly "org.osgi:org.osgi.util.function:$osgiUtilFunctionVersion"
+    runtimeOnly "org.osgi:org.osgi.util.promise:$osgiUtilPromiseVersion"
+
+    implementation platform("net.corda:corda-api:$cordaApiVersion")
+    implementation project(":libs:utilities")
+    implementation "net.corda:corda-base"
+    implementation "net.corda:corda-avro-schema"
+    implementation "net.corda:corda-config-schema"
+    implementation "net.corda:corda-topic-schema"
+    implementation "com.typesafe:config:$typeSafeConfigVersion"
+    implementation project(":components:membership:group-policy")
+    implementation project(":libs:virtual-node:virtual-node-info")
+    implementation project(':components:virtual-node:virtual-node-info-read-service')
+    implementation project(":components:virtual-node:cpi-info-read-service")
+    implementation project(":libs:membership:membership-common")
+    implementation project(":components:membership:membership-group-read")
+    runtimeOnly project(":libs:web:web-impl")
+
+    testImplementation project(":testing:test-utilities")
+    testImplementation project(":testing:p2p:certificates")
+    testImplementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+
+    integrationTestImplementation project(":components:gateway")
+    integrationTestImplementation project(":testing:db-message-bus-testkit")
+
+    nonOsgiIntegrationTestImplementation platform("net.corda:corda-api:$cordaApiVersion")
+    nonOsgiIntegrationTestImplementation project(":components:configuration:configuration-read-service-impl")
+    nonOsgiIntegrationTestImplementation project(":components:gateway")
+    nonOsgiIntegrationTestImplementation project(":libs:configuration:configuration-schema:p2p")
+    nonOsgiIntegrationTestImplementation project(":libs:lifecycle:lifecycle-impl")
+    nonOsgiIntegrationTestImplementation project(":libs:lifecycle:registry")
+    nonOsgiIntegrationTestImplementation project(":libs:configuration:configuration-core")
+    nonOsgiIntegrationTestImplementation project(":testing:p2p:inmemory-messaging-impl")
+    nonOsgiIntegrationTestImplementation project(':libs:messaging:message-bus')
+    nonOsgiIntegrationTestImplementation project(":libs:messaging:db-message-bus-impl")
+    nonOsgiIntegrationTestImplementation project(":components:crypto:crypto-client")
+    nonOsgiIntegrationTestImplementation project(':libs:schema-registry:schema-registry')
+    nonOsgiIntegrationTestImplementation project(':libs:platform-info')
+    nonOsgiIntegrationTestImplementation "net.corda:corda-avro-schema"
+    nonOsgiIntegrationTestImplementation project(":libs:schema-registry:schema-registry-impl")
+    nonOsgiIntegrationTestRuntimeOnly 'org.osgi:osgi.core'
+
+    integrationTestImplementation project(":components:configuration:configuration-read-service-impl")
+    integrationTestRuntimeOnly project(":libs:crypto:cipher-suite-impl")
+    integrationTestRuntimeOnly project(":libs:lifecycle:lifecycle-impl")
+    integrationTestRuntimeOnly project(":libs:messaging:db-topic-admin-impl")
+    integrationTestRuntimeOnly project(":libs:messaging:messaging-impl")
+    integrationTestRuntimeOnly project(":libs:schema-registry:schema-registry-impl")
+    integrationTestRuntimeOnly project(":components:crypto:crypto-client-impl")
+    integrationTestRuntimeOnly project(":components:membership:membership-group-read-impl")
+    integrationTestRuntimeOnly project(":components:membership:membership-persistence-client-impl")
+
+    testRuntimeOnly "com.lmax:disruptor:$disruptorVersion"
+    testRuntimeOnly "com.sun.activation:javax.activation:$activationVersion"
+    testRuntimeOnly "org.apache.aries.spifly:org.apache.aries.spifly.dynamic.framework.extension:$ariesDynamicFrameworkExtensionVersion"
+    testRuntimeOnly "org.ops4j.pax.jdbc:pax-jdbc-hsqldb:$paxJdbcVersion"
+    testRuntimeOnly "org.hsqldb:hsqldb:$hsqldbVersion"
+    testRuntimeOnly "org.postgresql:postgresql:$postgresDriverVersion"
+}
+
+var nonOsgiIntegrationTest = tasks.register('nonOsgiIntegrationTest', Test) {
+    description = "Runs non-OSGi Integration tests."
+    group = "verification"
+
+    testClassesDirs = project.sourceSets["nonOsgiIntegrationTest"].output.classesDirs
+    classpath = project.sourceSets["nonOsgiIntegrationTest"].runtimeClasspath
+
+    doFirst {
+        def hostsFilePath = file("${sourceSets.nonOsgiIntegrationTest.output.resourcesDir}/hosts").absolutePath
+        systemProperty 'jdk.net.hosts.file', hostsFilePath
+    }
+}
+
+tasks.named('integrationTest') {
+    dependsOn nonOsgiIntegrationTest
+}

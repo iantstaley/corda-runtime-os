@@ -1,0 +1,33 @@
+plugins {
+    id 'corda.common-library'
+    id 'corda.common-publishing'
+}
+
+description 'Corda ledger common data'
+
+ext.cordaEnableFormatting = true
+
+ext.cordaEnableFormatting = true
+
+dependencies {
+    compileOnly 'org.osgi:osgi.annotation'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations'
+
+    compileOnly "co.paralleluniverse:quasar-osgi-annotations:$quasarVersion"
+
+    implementation 'net.corda:corda-ledger-common'
+
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+
+    api project(':libs:base-internal')
+    implementation project(':libs:crypto:crypto-core')
+    implementation project(':libs:sandbox-types')
+    implementation project(':libs:serialization:json-validator')
+    implementation project(':libs:serialization:serialization-internal')
+    implementation project(':libs:utilities')
+
+    testImplementation project(':testing:test-serialization')
+    testImplementation project(':testing:kryo-serialization-testkit')
+    testImplementation project(':testing:ledger:ledger-common-base-test')
+
+}
