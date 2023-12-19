@@ -1,7 +1,7 @@
 [versions]
 kotlinVersion = "1.8.21"
 
-bouncycastleVersion = "1.76"
+bouncycastleVersion = "1.77"
 
 # Testing
 assertjVersion = "3.24.2"
